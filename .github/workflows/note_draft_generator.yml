@@ -1,0 +1,36 @@
+name: Note Draft Generator
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # 毎週月曜 JST 9:00 (UTC 00:00)
+  workflow_dispatch:       # 手動実行も可能
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 生成したドラフトファイルをコミットするために必要
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install anthropic requests python-dotenv
+
+      - name: Generate note draft
+        run: python automation/run_note.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Commit generated draft
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions"
+          git add automation/note_drafts/
+          git add automation/topics/note_topics.json
+          git diff --staged --quiet || git commit -m "Add note draft [skip ci]"
+          git push

@@ -1,0 +1,108 @@
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import anthropic
+
+# パス解決
+AUTOMATION_DIR = Path(__file__).parent
+TOPICS_FILE = AUTOMATION_DIR / "topics" / "saas_topics.json"
+
+SYSTEM_PROMPT = """\
+あなたは日本語SEOライターです。SaaSビジネスツールの比較・レビュー記事を書きます。
+ルール：
+- 読者：フリーランス・個人事業主・スタートアップ
+- 語調：です・ます調、専門的だが読みやすい
+- SEO：キーワードを自然に本文に組み込む（詰め込まない）
+- 構成：導入→特徴比較→料金→こんな人向け→まとめ
+- アフィリエイトリンク挿入位置に <!-- AFFILIATE_LINK: ツール名 --> を入れる
+- 事実に基づいて書く。不確かな情報は「〜とされている」と書く\
+"""
+
+
+def load_next_topic() -> dict | None:
+    """未投稿のトピックを1件取得する。"""
+    if not TOPICS_FILE.exists():
+        print(f"[ERROR] トピックファイルが見つかりません: {TOPICS_FILE}")
+        return None
+    with TOPICS_FILE.open(encoding="utf-8") as f:
+        topics: list[dict] = json.load(f)
+    for topic in topics:
+        if not topic.get("posted", False):
+            return topic
+    print("[INFO] 未投稿のトピックがありません。")
+    return None
+
+
+def mark_topic_as_posted(topic_id: int) -> None:
+    """指定IDのトピックを投稿済みにマークする。"""
+    with TOPICS_FILE.open(encoding="utf-8") as f:
+        topics: list[dict] = json.load(f)
+    for topic in topics:
+        if topic["id"] == topic_id:
+            topic["posted"] = True
+            break
+    with TOPICS_FILE.open("w", encoding="utf-8") as f:
+        json.dump(topics, f, ensure_ascii=False, indent=2)
+    print(f"[INFO] トピック ID={topic_id} を投稿済みにマークしました。")
+
+
+def generate_article(topic: dict) -> tuple[str, str]:
+    """
+    Claude Haiku でSEOアフィリエイト記事を生成する。
+
+    Returns:
+        (title, html_content)
+    """
+    from config import ANTHROPIC_API_KEY
+
+    title: str = topic["title"]
+    keyword: str = topic.get("keyword", title)
+    category: str = topic.get("category", "")
+    affiliate_tools: list[str] = topic.get("affiliate_tools", [])
+
+    tools_str = "、".join(affiliate_tools) if affiliate_tools else "各ツール"
+
+    user_prompt = f"""\
+以下のトピックでSEOアフィリエイト記事を書いてください。
+
+タイトル: {title}
+メインキーワード: {keyword}
+カテゴリ: {category}
+紹介するツール: {tools_str}
+
+要件:
+- HTML形式で出力（<h1>, <h2>, <h3>, <p>, <ul>, <li> タグを使用）
+- <h1> でタイトルを最初に書く
+- 導入文 300字以上
+- H2セクション 4〜5個
+- 各セクション内に <!-- AFFILIATE_LINK: ツール名 --> を1箇所挿入
+- まとめセクション 200字以上
+- 合計 1,500〜2,000字（日本語）
+- <html>, <body>, <head> タグは不要。記事本文のみ出力。\
+"""
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    print(f"[INFO] 記事生成開始: {title}")
+
+    try:
+        response = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=4096,
+            system=[
+                {
+                    "type": "text",
+                    "text": SYSTEM_PROMPT,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[{"role": "user", "content": user_prompt}],
+        )
+        content = response.content[0].text
+        print(f"[INFO] 記事生成完了: {len(content)}文字")
+        return title, content
+    except anthropic.APIError as e:
+        print(f"[ERROR] Claude API エラー: {e}")
+        raise

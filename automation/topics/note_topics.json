@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "title": "Claude AIに「記事を書いて」と頼んだだけの結果レポート【実験#001】",
+    "type": "free",
+    "tags": ["Claude", "AI副業", "自動化", "コンテンツ制作"],
+    "memo": "プロンプト1行での生成実験。5回試して結果を表形式で記録",
+    "posted": false
+  },
+  {
+    "id": 2,
+    "title": "GitHub ActionsでWordPressに自動投稿するまでの全手順【実験#002】",
+    "type": "paid",
+    "tags": ["GitHub Actions", "WordPress", "自動化", "ブログ運営"],
+    "memo": "実際の設定ファイルとコードを公開。エラーログも含めてリアルに記録",
+    "posted": false
+  },
+  {
+    "id": 3,
+    "title": "AIで生成した記事のSEO効果を30日間計測した結果【実験#003】",
+    "type": "free",
+    "tags": ["SEO", "AI副業", "アフィリエイト", "検証"],
+    "memo": "Google Search Consoleのデータを使って計測。クリック数・順位を公開",
+    "posted": false
+  },
+  {
+    "id": 4,
+    "title": "Notionデータベース＋Claude APIでコンテンツ管理を自動化した手順【実験#004】",
+    "type": "paid",
+    "tags": ["Notion", "Claude", "自動化", "コンテンツ制作"],
+    "memo": "Notion APIとClaude APIを組み合わせた実装。コードスニペットあり",
+    "posted": false
+  },
+  {
+    "id": 5,
+    "title": "月5万円のアフィリエイト収益を目指すAI自動化の全体設計【実験#005】",
+    "type": "free",
+    "tags": ["AI副業", "アフィリエイト", "自動化", "収益化"],
+    "memo": "システム全体像の図解と実装ステップのロードマップを公開",
+    "posted": false
+  },
+  {
+    "id": 6,
+    "title": "Claude Haikuとより高性能なモデルの記事品質を比較した結果【実験#006】",
+    "type": "free",
+    "tags": ["Claude", "AI", "コスト最適化", "コンテンツ制作"],
+    "memo": "同一プロンプトで複数モデルを比較。SEO品質・コスト・速度を表で整理",
+    "posted": false
+  },
+  {
+    "id": 7,
+    "title": "Zapier不要でPython＋GitHub Actionsだけで自動化を完結させた方法【実験#007】",
+    "type": "paid",
+    "tags": ["Python", "GitHub Actions", "自動化", "ノーコード不要"],
+    "memo": "有料ツール不使用。OSS＋無料枠のみで構築したシステムの全公開",
+    "posted": false
+  },
+  {
+    "id": 8,
+    "title": "AIアフィリエイト記事の著作権リスクを弁護士資料を元に整理した【実験#008】",
+    "type": "free",
+    "tags": ["AI副業", "法律", "著作権", "アフィリエイト"],
+    "memo": "実際の規約と公開資料を参照。「やってよいこと・ダメなこと」をリスト化",
+    "posted": false
+  },
+  {
+    "id": 9,
+    "title": "note自動下書き生成システムを構築して週1投稿を維持する方法【実験#009】",
+    "type": "paid",
+    "tags": ["note", "自動化", "Claude", "コンテンツ制作"],
+    "memo": "このシステム自体の構築手順を公開。GitHub Actionsのyamlファイル含む",
+    "posted": false
+  },
+  {
+    "id": 10,
+    "title": "AI自動化コンテンツビジネス 月次まとめVol.1【収益・PV・学び】",
+    "type": "free",
+    "tags": ["月次まとめ", "AI副業", "アフィリエイト", "自動化"],
+    "memo": "1ヶ月の運用結果をすべて数字で公開。収益・記事数・PV・かかった費用",
+    "posted": false
+  }
+]

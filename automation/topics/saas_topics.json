@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "title": "freee会計の料金プランを徹底比較【2025年最新】",
+    "keyword": "freee 料金プラン",
+    "category": "会計・経費管理",
+    "affiliate_tools": ["freee"],
+    "posted": false
+  },
+  {
+    "id": 2,
+    "title": "マネーフォワードクラウドの全サービス一覧と料金まとめ",
+    "keyword": "マネーフォワードクラウド 料金",
+    "category": "会計・経費管理",
+    "affiliate_tools": ["マネーフォワードクラウド"],
+    "posted": false
+  },
+  {
+    "id": 3,
+    "title": "ChatGPT Plus は個人事業主に必要か？無料版との違いを検証",
+    "keyword": "ChatGPT Plus 個人事業主",
+    "category": "AI・生産性",
+    "affiliate_tools": ["ChatGPT Plus"],
+    "posted": false
+  },
+  {
+    "id": 4,
+    "title": "Canva Pro の料金と無料版との機能差を比較【デザイン初心者向け】",
+    "keyword": "Canva Pro 料金 違い",
+    "category": "デザイン・クリエイティブ",
+    "affiliate_tools": ["Canva Pro"],
+    "posted": false
+  },
+  {
+    "id": 5,
+    "title": "Notionの料金プランを比較：個人・チームどちらがお得か",
+    "keyword": "Notion 料金プラン 比較",
+    "category": "プロジェクト管理・メモ",
+    "affiliate_tools": ["Notion"],
+    "posted": false
+  },
+  {
+    "id": 6,
+    "title": "クラウドサインの電子契約サービス比較：料金・機能・導入事例",
+    "keyword": "クラウドサイン 料金 比較",
+    "category": "電子契約・法務",
+    "affiliate_tools": ["クラウドサイン"],
+    "posted": false
+  },
+  {
+    "id": 7,
+    "title": "Figmaの料金プランを徹底解説：スタータープランで十分？",
+    "keyword": "Figma 料金プラン",
+    "category": "デザイン・クリエイティブ",
+    "affiliate_tools": ["Figma"],
+    "posted": false
+  },
+  {
+    "id": 8,
+    "title": "BacklogとJiraを比較：中小チームに向いているのはどちら？",
+    "keyword": "Backlog Jira 比較",
+    "category": "プロジェクト管理",
+    "affiliate_tools": ["Backlog"],
+    "posted": false
+  },
+  {
+    "id": 9,
+    "title": "Asanaの使い方と料金：タスク管理をもっとシンプルにする方法",
+    "keyword": "Asana 使い方 料金",
+    "category": "プロジェクト管理",
+    "affiliate_tools": ["Asana"],
+    "posted": false
+  },
+  {
+    "id": 10,
+    "title": "Slackの有料プランは必要か？Business+とProプランを比較",
+    "keyword": "Slack 有料プラン 比較",
+    "category": "コミュニケーション",
+    "affiliate_tools": ["Slack"],
+    "posted": false
+  },
+  {
+    "id": 11,
+    "title": "Zoom Proの料金と機能：無料版から乗り換えるべきタイミング",
+    "keyword": "Zoom Pro 料金 機能",
+    "category": "Web会議・コミュニケーション",
+    "affiliate_tools": ["Zoom Pro"],
+    "posted": false
+  },
+  {
+    "id": 12,
+    "title": "Adobe Expressの料金と使い方：Canvaとどちらが得か比較",
+    "keyword": "Adobe Express 料金 Canva 比較",
+    "category": "デザイン・クリエイティブ",
+    "affiliate_tools": ["Adobe Express", "Canva Pro"],
+    "posted": false
+  },
+  {
+    "id": 13,
+    "title": "kintoneの料金プランと導入コストを中小企業向けに解説",
+    "keyword": "kintone 料金 中小企業",
+    "category": "業務改善・ローコード",
+    "affiliate_tools": ["kintone"],
+    "posted": false
+  },
+  {
+    "id": 14,
+    "title": "楽楽精算の料金と評判：経費精算システム導入前に知っておくこと",
+    "keyword": "楽楽精算 料金 評判",
+    "category": "会計・経費管理",
+    "affiliate_tools": ["楽楽精算"],
+    "posted": false
+  },
+  {
+    "id": 15,
+    "title": "ChatworkとSlackを比較：日本の中小企業に向いているのはどちら？",
+    "keyword": "Chatwork Slack 比較",
+    "category": "コミュニケーション",
+    "affiliate_tools": ["Chatwork", "Slack"],
+    "posted": false
+  },
+  {
+    "id": 16,
+    "title": "Monday.comの料金と使い方：プロジェクト管理ツール完全ガイド",
+    "keyword": "Monday.com 料金 使い方",
+    "category": "プロジェクト管理",
+    "affiliate_tools": ["Monday.com"],
+    "posted": false
+  },
+  {
+    "id": 17,
+    "title": "HubSpot無料CRMの限界と有料プランへの移行タイミング",
+    "keyword": "HubSpot 無料 有料 比較",
+    "category": "CRM・マーケティング",
+    "affiliate_tools": ["HubSpot"],
+    "posted": false
+  },
+  {
+    "id": 18,
+    "title": "Zapierで業務自動化：料金・使い方・Makeとの違いを比較",
+    "keyword": "Zapier 料金 Make 比較",
+    "category": "業務自動化",
+    "affiliate_tools": ["Zapier", "Make"],
+    "posted": false
+  },
+  {
+    "id": 19,
+    "title": "Make（旧Integromat）でできること：Zapierより安い自動化ツール徹底解説",
+    "keyword": "Make Integromat 料金 使い方",
+    "category": "業務自動化",
+    "affiliate_tools": ["Make"],
+    "posted": false
+  },
+  {
+    "id": 20,
+    "title": "Loomで非同期コミュニケーション：料金と活用シーン完全ガイド",
+    "keyword": "Loom 料金 非同期 コミュニケーション",
+    "category": "コミュニケーション・動画",
+    "affiliate_tools": ["Loom"],
+    "posted": false
+  }
+]
