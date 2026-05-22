@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
+import urllib.parse
 from pathlib import Path
 
 import anthropic
@@ -9,6 +11,65 @@ import anthropic
 # パス解決
 AUTOMATION_DIR = Path(__file__).parent
 TOPICS_FILE = AUTOMATION_DIR / "topics" / "saas_topics.json"
+TOOL_DATA_FILE = AUTOMATION_DIR / "tool_data.json"
+
+
+def load_tool_data() -> dict:
+    """tool_data.json を読み込む。ファイルが存在しない場合は空辞書を返す。"""
+    if not TOOL_DATA_FILE.exists():
+        print(f"[WARN] tool_data.json が見つかりません: {TOOL_DATA_FILE}")
+        return {}
+    with TOOL_DATA_FILE.open(encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _build_affiliate_html(tool_name: str, tool_data: dict) -> str:
+    """
+    ツール名に対応するGA4イベント付きアフィリエイトボタンHTMLを生成する。
+
+    ツール名が tool_data に存在しない場合は Google 検索フォールバックURLを使う。
+    """
+    entry = tool_data.get(tool_name)
+    if entry:
+        url = entry["official_url"]
+    else:
+        query = urllib.parse.quote(f"{tool_name} 公式サイト")
+        url = f"https://www.google.com/search?q={query}"
+
+    # ツール名内のシングルクォートをエスケープ（インラインonclick用）
+    safe_tool_name = tool_name.replace("'", "\\'")
+
+    return (
+        '<div class="tool-cta" style="margin: 16px 0; padding: 12px; '
+        'background: #f8f9fa; border-radius: 6px; border-left: 3px solid #0066cc;">\n'
+        f'  <a href="{url}"\n'
+        '     target="_blank"\n'
+        '     rel="noopener noreferrer sponsored"\n'
+        f"     onclick=\"if(typeof gtag!=='undefined'){{gtag('event','tool_click',"
+        f"{{'tool_name':'{safe_tool_name}','event_category':'affiliate_placeholder'}})}}\"\n"
+        '     style="color: #0066cc; font-weight: bold; text-decoration: none;">\n'
+        f"    {tool_name} の公式サイトを確認する &rarr;\n"
+        "  </a>\n"
+        "</div>"
+    )
+
+
+def replace_affiliate_placeholders(html_content: str, tool_data: dict) -> str:
+    """
+    HTML内の <!-- AFFILIATE_LINK: ツール名 --> をGA4イベント付きボタンHTMLに置換する。
+    """
+    pattern = re.compile(r"<!--\s*AFFILIATE_LINK:\s*(.+?)\s*-->")
+
+    def replacer(match: re.Match) -> str:
+        tool_name = match.group(1).strip()
+        return _build_affiliate_html(tool_name, tool_data)
+
+    replaced = pattern.sub(replacer, html_content)
+    count = len(pattern.findall(html_content))
+    if count:
+        print(f"[INFO] アフィリエイトプレースホルダーを {count} 件置換しました。")
+    return replaced
+
 
 SYSTEM_PROMPT = """\
 あなたは日本語SEOライターです。SaaSビジネスツールの比較・レビュー記事を書きます。
@@ -102,6 +163,11 @@ def generate_article(topic: dict) -> tuple[str, str]:
         )
         content = response.content[0].text
         print(f"[INFO] 記事生成完了: {len(content)}文字")
+
+        # アフィリエイトプレースホルダーをGA4イベント付きボタンHTMLに置換
+        tool_data = load_tool_data()
+        content = replace_affiliate_placeholders(content, tool_data)
+
         return title, content
     except anthropic.APIError as e:
         print(f"[ERROR] Claude API エラー: {e}")

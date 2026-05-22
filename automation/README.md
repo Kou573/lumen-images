@@ -90,3 +90,54 @@ WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 - **WordPress記事**: 投稿後にWordPress管理画面の「投稿一覧」で確認
 - **note下書き**: `automation/note_drafts/YYYYMMDD_タイトル.md` に保存されます
   - ファイルを開いて内容を note.com のエディタに貼り付け → 公開ボタンを押すだけです
+
+---
+
+## 7. GA4クリック計測 + 収益推定レポートのセットアップ
+
+### 概要
+記事内のツールリンクのクリック数をGA4で計測し、毎月1日に推定収益レポートを自動生成します。
+収益化（アフィリエイトリンク有効化）のタイミングを数値で判断できます。
+
+### 必要なもの
+- Google アカウント（無料）
+- Google Cloud プロジェクト（無料枠で足ります）
+
+### セットアップ手順
+
+#### Step 1: Google Analytics 4 プロパティ作成
+1. analytics.google.com にアクセス
+2. 「プロパティを作成」→ サイト名・URLを入力
+3. 「プロパティID」（例: `123456789`）をメモ
+
+#### Step 2: WordPressにGA4を設置
+1. WordPress管理画面 → プラグイン → 「Site Kit by Google」をインストール・有効化
+2. Googleアカウントで連携 → GA4プロパティを選択
+3. これでサイトのGA4計測が開始されます
+
+#### Step 3: Google Cloud サービスアカウント作成
+1. console.cloud.google.com にアクセス
+2. 新規プロジェクト作成（名前は何でもOK）
+3. 「APIとサービス」→「ライブラリ」→「Google Analytics Data API」を有効化
+4. 「APIとサービス」→「認証情報」→「サービスアカウントを作成」
+5. サービスアカウントのメールアドレスをコピー（例: `xxx@yyy.iam.gserviceaccount.com`）
+6. 「キー」タブ → 「鍵を追加」→「JSON」→ ダウンロード
+
+#### Step 4: GA4にサービスアカウントを追加
+1. analytics.google.com → 管理 → 「プロパティのアクセス管理」
+2. 「＋」→ Step 3のサービスアカウントのメールアドレスを追加（権限: 閲覧者）
+
+#### Step 5: GitHub Secretsに2つ追加
+| Secret名 | 値 |
+|---|---|
+| `GA4_PROPERTY_ID` | Step 1でメモしたプロパティID（数字のみ） |
+| `GA4_SERVICE_ACCOUNT_JSON` | Step 3でダウンロードしたJSONファイルの内容をbase64エンコードした文字列 |
+
+base64エンコードの方法（ターミナル）:
+```bash
+base64 -i your-service-account.json | tr -d '\n'
+```
+
+### レポートの確認
+毎月1日に `output/revenue_reports/YYYYMM_estimate.md` が自動生成されます。
+推定収益が20万円を超えると「🟢 収益化タイミングです」と表示されます。

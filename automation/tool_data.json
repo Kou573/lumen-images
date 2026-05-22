@@ -1,0 +1,128 @@
+{
+  "freee": {
+    "official_url": "https://www.freee.co.jp",
+    "affiliate_unit_price": 8000,
+    "cvr_estimate": 0.025,
+    "category": "会計・経費管理"
+  },
+  "マネーフォワードクラウド": {
+    "official_url": "https://biz.moneyforward.com",
+    "affiliate_unit_price": 12000,
+    "cvr_estimate": 0.025,
+    "category": "会計・経費管理"
+  },
+  "ChatGPT Plus": {
+    "official_url": "https://chat.openai.com",
+    "affiliate_unit_price": 5000,
+    "cvr_estimate": 0.03,
+    "category": "AI・生産性"
+  },
+  "Canva Pro": {
+    "official_url": "https://www.canva.com/ja_jp/canva-pro/",
+    "affiliate_unit_price": 3000,
+    "cvr_estimate": 0.03,
+    "category": "デザイン・クリエイティブ"
+  },
+  "Notion": {
+    "official_url": "https://www.notion.so/ja-jp",
+    "affiliate_unit_price": 5000,
+    "cvr_estimate": 0.02,
+    "category": "プロジェクト管理・メモ"
+  },
+  "クラウドサイン": {
+    "official_url": "https://www.cloudsign.jp",
+    "affiliate_unit_price": 10000,
+    "cvr_estimate": 0.02,
+    "category": "電子契約・法務"
+  },
+  "Figma": {
+    "official_url": "https://www.figma.com",
+    "affiliate_unit_price": 8000,
+    "cvr_estimate": 0.02,
+    "category": "デザイン・クリエイティブ"
+  },
+  "Backlog": {
+    "official_url": "https://backlog.com/ja/",
+    "affiliate_unit_price": 7000,
+    "cvr_estimate": 0.02,
+    "category": "プロジェクト管理"
+  },
+  "Asana": {
+    "official_url": "https://asana.com/ja",
+    "affiliate_unit_price": 8000,
+    "cvr_estimate": 0.02,
+    "category": "プロジェクト管理"
+  },
+  "Slack": {
+    "official_url": "https://slack.com/intl/ja-jp/",
+    "affiliate_unit_price": 5000,
+    "cvr_estimate": 0.015,
+    "category": "コミュニケーション"
+  },
+  "Zoom": {
+    "official_url": "https://zoom.us",
+    "affiliate_unit_price": 4000,
+    "cvr_estimate": 0.015,
+    "category": "Web会議・コミュニケーション"
+  },
+  "Zoom Pro": {
+    "official_url": "https://zoom.us/pricing",
+    "affiliate_unit_price": 4000,
+    "cvr_estimate": 0.015,
+    "category": "Web会議・コミュニケーション"
+  },
+  "Adobe Express": {
+    "official_url": "https://www.adobe.com/jp/express/",
+    "affiliate_unit_price": 6000,
+    "cvr_estimate": 0.02,
+    "category": "デザイン・クリエイティブ"
+  },
+  "kintone": {
+    "official_url": "https://kintone.cybozu.co.jp",
+    "affiliate_unit_price": 15000,
+    "cvr_estimate": 0.02,
+    "category": "業務改善・ローコード"
+  },
+  "楽楽精算": {
+    "official_url": "https://www.rakurakuseisan.jp",
+    "affiliate_unit_price": 10000,
+    "cvr_estimate": 0.02,
+    "category": "会計・経費管理"
+  },
+  "Chatwork": {
+    "official_url": "https://go.chatwork.com/ja/",
+    "affiliate_unit_price": 3000,
+    "cvr_estimate": 0.015,
+    "category": "コミュニケーション"
+  },
+  "Monday.com": {
+    "official_url": "https://monday.com/lang/ja/",
+    "affiliate_unit_price": 10000,
+    "cvr_estimate": 0.02,
+    "category": "プロジェクト管理"
+  },
+  "HubSpot": {
+    "official_url": "https://www.hubspot.jp",
+    "affiliate_unit_price": 30000,
+    "cvr_estimate": 0.015,
+    "category": "CRM・マーケティング"
+  },
+  "Zapier": {
+    "official_url": "https://zapier.com",
+    "affiliate_unit_price": 15000,
+    "cvr_estimate": 0.015,
+    "category": "業務自動化"
+  },
+  "Make": {
+    "official_url": "https://www.make.com/en",
+    "affiliate_unit_price": 10000,
+    "cvr_estimate": 0.015,
+    "category": "業務自動化"
+  },
+  "Loom": {
+    "official_url": "https://www.loom.com",
+    "affiliate_unit_price": 5000,
+    "cvr_estimate": 0.015,
+    "category": "コミュニケーション・動画"
+  }
+}
