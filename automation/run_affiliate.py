@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -7,12 +8,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from article_generator import generate_article, load_next_topic, mark_topic_as_posted
 from config import validate_affiliate_config
-from wordpress_poster import post_article
 
 
 def main() -> int:
     print("=" * 60)
-    print("[START] アフィリエイト自動投稿を開始します")
+    print("[START] アフィリエイト記事生成を開始します")
     print("=" * 60)
 
     if not validate_affiliate_config():
@@ -32,16 +32,15 @@ def main() -> int:
         print(f"[ERROR] 記事生成に失敗しました: {e}")
         return 1
 
-    result = post_article(title=title, content=content)
-
-    if "error" in result:
-        print(f"[ERROR] WordPress投稿に失敗しました: {result['error']}")
-        return 1
-
+    output_path = Path(__file__).parent.parent / "articles" / "latest.json"
+    output_path.parent.mkdir(exist_ok=True)
+    output_path.write_text(
+        json.dumps({"title": title, "content": content}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     mark_topic_as_posted(topic["id"])
 
-    print("=" * 60)
-    print(f"[SUCCESS] 投稿完了: {result.get('link', '（URL不明）')}")
+    print(f"[SUCCESS] 記事を保存しました: {title}")
     print("=" * 60)
     return 0
 
