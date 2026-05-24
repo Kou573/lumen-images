@@ -3,13 +3,13 @@ name: Affiliate Site Auto Post
 on:
   schedule:
     - cron: '0 1 * * *'  # JST 10:00 (UTC 01:00)
-  workflow_dispatch:       # 手動実行も可能
+  workflow_dispatch:
 
 jobs:
   post:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # topics JSONをコミットし直すために必要
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -21,16 +21,16 @@ jobs:
       - name: Install dependencies
         run: pip install anthropic requests python-dotenv
 
-      - name: Generate and post affiliate article
+      - name: Generate article and save to repo
         run: python automation/run_affiliate.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           WP_URL: ${{ secrets.WP_URL }}
 
-      - name: Commit updated topics
+      - name: Commit article and updated topics
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Actions"
-          git add automation/topics/saas_topics.json
-          git diff --staged --quiet || git commit -m "Mark topic as posted [skip ci]"
+          git add articles/latest.json automation/topics/saas_topics.json
+          git diff --staged --quiet || git commit -m "Add new article [skip ci]"
           git push
