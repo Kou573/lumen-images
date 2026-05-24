@@ -71,6 +71,30 @@ def replace_affiliate_placeholders(html_content: str, tool_data: dict) -> str:
     return replaced
 
 
+CATEGORY_IMAGES: dict[str, str] = {
+    "会計・経費管理":       "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&auto=format&fit=crop",
+    "AI・生産性":           "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200&auto=format&fit=crop",
+    "デザイン・クリエイティブ": "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&auto=format&fit=crop",
+    "プロジェクト管理・メモ":  "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&auto=format&fit=crop",
+    "電子契約・法務":        "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&auto=format&fit=crop",
+    "コミュニケーション":     "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&auto=format&fit=crop",
+    "転職・キャリア":        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&auto=format&fit=crop",
+    "スキマバイト・副業":     "https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=1200&auto=format&fit=crop",
+    "レンタルサーバー":       "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&auto=format&fit=crop",
+}
+DEFAULT_IMAGE = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop"
+
+
+def _prepend_eyecatch_image(keyword: str, category: str) -> str:
+    img_url = CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
+    alt = keyword.replace('"', "&quot;")
+    return (
+        f'<figure class="wp-block-image size-large">'
+        f'<img src="{img_url}" alt="{alt}" style="width:100%;height:auto;border-radius:8px;">'
+        f'</figure>'
+    )
+
+
 SYSTEM_PROMPT = """\
 あなたは日本語SEOライターです。デジタルサービス・ツールの比較・レビュー記事を書きます。
 対応カテゴリ：SaaS・ビジネスツール、AIツール、レンタルサーバー、転職・キャリアアプリ、スキマバイト・副業アプリ
@@ -166,9 +190,16 @@ def generate_article(topic: dict) -> tuple[str, str]:
         content = response.content[0].text
         print(f"[INFO] 記事生成完了: {len(content)}文字")
 
+        # ```html や ``` のコードブロックマーカーを除去
+        content = re.sub(r"^```html\s*", "", content.strip())
+        content = re.sub(r"```\s*$", "", content.strip())
+
         # アフィリエイトプレースホルダーをGA4イベント付きボタンHTMLに置換
         tool_data = load_tool_data()
         content = replace_affiliate_placeholders(content, tool_data)
+
+        # 記事冒頭にカテゴリ対応のアイキャッチ画像を追加
+        content = _prepend_eyecatch_image(keyword, category) + "\n" + content
 
         return title, content
     except anthropic.APIError as e:
