@@ -21,16 +21,17 @@ jobs:
       - name: Install dependencies
         run: pip install anthropic requests python-dotenv
 
-      - name: Generate article and save to repo
+      - name: Generate and post affiliate article
         run: python automation/run_affiliate.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           WP_URL: ${{ secrets.WP_URL }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
 
-      - name: Commit article and updated topics
+      - name: Commit updated topics
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Actions"
-          git add articles/latest.json automation/topics/saas_topics.json
-          git diff --staged --quiet || git commit -m "Add new article [skip ci]"
+          git add automation/topics/saas_topics.json
+          git diff --staged --quiet || git commit -m "Mark topic as posted [skip ci]"
           git push

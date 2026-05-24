@@ -1,49 +1,33 @@
 from __future__ import annotations
 
 import logging
-
-import requests
+import xmlrpc.client
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
-AUTOPOST_SECRET = "glowlog_secret_2026"
 
+def post_article(title: str, content: str, tags: list[str] | None = None) -> dict:
+    from config import WP_URL, WP_USERNAME, WP_APP_PASSWORD
 
-def post_article(
-    title: str,
-    content: str,
-    tags: list[str] | None = None,
-) -> dict:
-    from config import WP_URL
-
-    if not WP_URL:
-        msg = "WP_URL が未設定です。"
+    if not all([WP_URL, WP_USERNAME, WP_APP_PASSWORD]):
+        msg = "WP_URL / WP_USERNAME / WP_APP_PASSWORD が未設定です。"
         logger.error(msg)
         return {"error": msg}
 
-    api_endpoint = f"{WP_URL.rstrip('/')}/wp-json/autopost/v1/post"
+    endpoint = f"{WP_URL.rstrip('/')}/xmlrpc.php"
+    logger.info("WordPress XML-RPC投稿開始: %s", title)
 
-    logger.info("WordPress への投稿を開始します: %s", title)
     try:
-        response = requests.post(
-            api_endpoint,
-            data={"secret": AUTOPOST_SECRET, "title": title, "content": content},
-            timeout=30,
-        )
-        response.raise_for_status()
-        result: dict = response.json()
-        logger.info("投稿成功: %s", result.get("link", "（URL不明）"))
-        return result
-    except requests.exceptions.HTTPError as e:
-        logger.error("HTTP エラー: %s  レスポンス: %s", e, e.response.text if e.response else "")
-        return {"error": str(e)}
-    except requests.exceptions.ConnectionError as e:
-        logger.error("接続エラー: %s", e)
-        return {"error": str(e)}
-    except requests.exceptions.Timeout:
-        logger.error("タイムアウト")
-        return {"error": "timeout"}
+        server = xmlrpc.client.ServerProxy(endpoint)
+        post_data = {
+            "post_title": title,
+            "post_content": content,
+            "post_status": "publish",
+        }
+        post_id = server.wp.newPost(1, WP_USERNAME, WP_APP_PASSWORD, post_data)
+        logger.info("投稿成功: ID=%s", post_id)
+        return {"id": post_id, "link": f"{WP_URL.rstrip('/')}/?p={post_id}"}
     except Exception as e:
-        logger.error("予期しないエラー: %s", e)
+        logger.error("XML-RPC エラー: %s", e)
         return {"error": str(e)}
