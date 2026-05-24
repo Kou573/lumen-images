@@ -39,4 +39,7 @@ jobs:
           git push
 
       - name: Trigger WordPress WP-Cron
-        run: curl -s "${{ secrets.WP_URL }}/wp-cron.php?doing_wp_cron" -o /dev/null -w "WP-Cron: %{http_code}"
+        run: |
+          WP_URL="${{ secrets.WP_URL }}"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${WP_URL}/wp-cron.php?doing_wp_cron")
+          echo "WP-Cron status: ${STATUS}"
