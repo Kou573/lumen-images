@@ -124,5 +124,77 @@
     "affiliate_unit_price": 5000,
     "cvr_estimate": 0.015,
     "category": "コミュニケーション・動画"
+  },
+  "リクルートエージェント": {
+    "official_url": "https://www.r-agent.com",
+    "affiliate_unit_price": 15000,
+    "cvr_estimate": 0.015,
+    "category": "転職・キャリア"
+  },
+  "doda": {
+    "official_url": "https://doda.jp",
+    "affiliate_unit_price": 12000,
+    "cvr_estimate": 0.015,
+    "category": "転職・キャリア"
+  },
+  "マイナビ転職": {
+    "official_url": "https://tenshoku.mynavi.jp",
+    "affiliate_unit_price": 10000,
+    "cvr_estimate": 0.015,
+    "category": "転職・キャリア"
+  },
+  "ビズリーチ": {
+    "official_url": "https://www.bizreach.jp",
+    "affiliate_unit_price": 20000,
+    "cvr_estimate": 0.01,
+    "category": "転職・キャリア"
+  },
+  "リクナビNEXT": {
+    "official_url": "https://next.rikunabi.com",
+    "affiliate_unit_price": 8000,
+    "cvr_estimate": 0.02,
+    "category": "転職・キャリア"
+  },
+  "タイミー": {
+    "official_url": "https://timee.co.jp",
+    "affiliate_unit_price": 1500,
+    "cvr_estimate": 0.03,
+    "category": "副業・スキマバイト"
+  },
+  "シェアフル": {
+    "official_url": "https://sharefull.com",
+    "affiliate_unit_price": 1000,
+    "cvr_estimate": 0.03,
+    "category": "副業・スキマバイト"
+  },
+  "マッハバイト": {
+    "official_url": "https://townwork.net",
+    "affiliate_unit_price": 800,
+    "cvr_estimate": 0.035,
+    "category": "副業・スキマバイト"
+  },
+  "バイトル": {
+    "official_url": "https://www.baitoru.com",
+    "affiliate_unit_price": 1000,
+    "cvr_estimate": 0.03,
+    "category": "副業・スキマバイト"
+  },
+  "Xserver": {
+    "official_url": "https://www.xserver.ne.jp",
+    "affiliate_unit_price": 12000,
+    "cvr_estimate": 0.02,
+    "category": "レンタルサーバー"
+  },
+  "ConoHa WING": {
+    "official_url": "https://www.conoha.jp/wing",
+    "affiliate_unit_price": 10000,
+    "cvr_estimate": 0.02,
+    "category": "レンタルサーバー"
+  },
+  "さくらのレンタルサーバ": {
+    "official_url": "https://rs.sakura.ad.jp",
+    "affiliate_unit_price": 5000,
+    "cvr_estimate": 0.02,
+    "category": "レンタルサーバー"
   }
 }
