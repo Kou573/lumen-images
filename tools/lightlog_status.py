@@ -61,11 +61,11 @@ def load_latest_article() -> dict:
 def load_revenue_reports() -> dict:
     """output/revenue_reports/ 以下の最新レポートを返す"""
     if not REVENUE_DIR.exists():
-        return {"status": "レポートフォルダなし（GA4未連携の可能性）"}
+        return {"status": "GA4計測中 ✅ — 翌月1日に初回レポートが自動生成されます"}
 
     reports = sorted(REVENUE_DIR.glob("*.md"), reverse=True)
     if not reports:
-        return {"status": "収益レポートはまだ生成されていません（GA4計測開始後、翌月1日に自動生成）"}
+        return {"status": "GA4計測中 ✅ — 翌月1日に初回レポートが自動生成されます"}
 
     latest = reports[0]
     content = latest.read_text(encoding="utf-8")
@@ -188,9 +188,9 @@ def build_report(as_json: bool = False) -> str:
 
     # 自動化設定
     lines.append("【自動化ステータス】")
-    lines.append("  📅 GitHub Actions: 毎日 JST 10:00 自動投稿")
+    lines.append("  📅 GitHub Actions: 毎日 JST 08:00 自動投稿")
     lines.append("  📝 note下書き: 毎週月曜 JST 9:00 自動生成")
-    lines.append("  📊 収益レポート: 毎月1日 自動生成（GA4連携後）")
+    lines.append("  📊 収益レポート: 毎月1日 自動生成（GA4計測中 ✅）")
     lines.append("")
     lines.append("=" * 60)
 
