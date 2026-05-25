@@ -65,11 +65,30 @@ def _build_affiliate_html(tool_name: str, tool_data: dict) -> str:
 
 
 def replace_affiliate_placeholders(html: str, tool_data: dict) -> str:
+    """
+    <!-- AFFILIATE_LINK: ツール名 --> を CTA ボタン HTML に置換する。
+    3 箇所以上ある場合は先頭と末尾の 2 箇所だけ残し、中間のものは空文字で除去する。
+    """
     pattern = re.compile(r"<!--\s*AFFILIATE_LINK:\s*(.+?)\s*-->")
-    result  = pattern.sub(lambda m: _build_affiliate_html(m.group(1).strip(), tool_data), html)
-    n = len(pattern.findall(html))
-    if n:
-        print(f"[INFO] アフィリエイトプレースホルダー {n} 件を置換しました。")
+    matches = list(pattern.finditer(html))
+    n = len(matches)
+    if n == 0:
+        return html
+
+    # 残す位置: 先頭と末尾のみ（2箇所以下なら全部残す）
+    if n <= 2:
+        keep_starts = {m.start() for m in matches}
+    else:
+        keep_starts = {matches[0].start(), matches[-1].start()}
+        print(f"[INFO] CTA {n}箇所 → 先頭と末尾の2箇所のみ残しました（中間 {n - 2} 箇所を除去）。")
+
+    result = pattern.sub(
+        lambda m: _build_affiliate_html(m.group(1).strip(), tool_data)
+        if m.start() in keep_starts else "",
+        html,
+    )
+    kept = min(n, 2)
+    print(f"[INFO] アフィリエイトCTA {kept}箇所を置換しました。")
     return result
 
 
@@ -309,7 +328,7 @@ SYSTEM_PROMPT = """\
 【その他ルール】
 - HTML形式（<h1><h2><h3><p><ul><li><table><dl><dt><dd>）
 - 記事中の年号は2026年（2025年最新は書かない）
-- <!-- AFFILIATE_LINK: ツール名 --> は記事全体で最大2箇所のみ（1つ目は本文中盤、2つ目はまとめ直前）
+- <!-- AFFILIATE_LINK: ツール名 --> は記事全体で厳密に2箇所のみ（1つ目は導入文の直後、2つ目はまとめセクションの末尾）
 - 各 H2 セクションには必ず上下に余白を設ける: <h2 style="margin-top:48px;padding-top:8px;border-top:2px solid #e8e8e8;">
 - 各段落 <p> には style="margin-bottom:1.4em;line-height:1.85;" を付ける
 - <html><body><head>タグは不要、記事本文のみ
@@ -330,7 +349,7 @@ USER_PROMPT_TEMPLATE = """\
 2. <h1> タイトル
 3. <div class="summary-box"> この記事でわかること（ul 3〜5項目）</div>
 4. 導入文 350字以上（読者の悩みを具体的に提示）
-5. H2 × 4〜5個（各H2直下に40〜60字の要点ボックス）※CTAは全体で2箇所のみ
+5. H2 × 4〜5個（各H2直下に40〜60字の要点ボックス）※CTAは導入文直後と まとめ末尾の2箇所のみ
 6. 料金・機能比較テーブル（thead/tbody使用、○△×や数値で明記）
 7. <h2>よくある質問</h2>（<dl><dt><dd> 形式で 4〜5 Q&A）
 8. <h2>まとめ</h2>（結論と強いCTAを含む）
