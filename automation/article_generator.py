@@ -173,13 +173,18 @@ def _eyecatch_html(keyword: str, img_url: str) -> str:
     )
 
 
-def _section_image_html(keyword: str, img_url: str) -> str:
-    alt = keyword.replace('"', "&quot;") + " 解説イメージ"
-    # 同じ画像を少し暗くして使い回す
-    variant = img_url.replace("w=1200", "w=800") + ("" if "unsplash" not in img_url else "&bri=-5")
+def _section_image_html(keyword: str, topic_id: int) -> str:
+    """
+    セクション画像はアイキャッチと異なる Unsplash フォトを使う。
+    topic_id + 1000 を sig に使うことでアイキャッチ（sig=topic_id）と別の画像になる。
+    """
+    alt = keyword.replace('"', "&quot;") + " 活用イメージ"
+    # ビジネス/チームワークをテーマにした別の写真ベース（アイキャッチと被らない）
+    base = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop"
+    url  = f"{base}&sig={topic_id + 1000}"
     return (
-        f'<figure class="wp-block-image" style="margin:20px 0;">'
-        f'<img src="{variant}" alt="{alt}" loading="lazy"'
+        f'<figure class="wp-block-image" style="margin:32px 0;">'
+        f'<img src="{url}" alt="{alt}" loading="lazy"'
         f' style="width:100%;max-width:720px;height:auto;border-radius:8px;">'
         f'</figure>\n'
     )
@@ -304,7 +309,9 @@ SYSTEM_PROMPT = """\
 【その他ルール】
 - HTML形式（<h1><h2><h3><p><ul><li><table><dl><dt><dd>）
 - 記事中の年号は2026年（2025年最新は書かない）
-- <!-- AFFILIATE_LINK: ツール名 --> を各H2に1箇所挿入
+- <!-- AFFILIATE_LINK: ツール名 --> は記事全体で最大2箇所のみ（1つ目は本文中盤、2つ目はまとめ直前）
+- 各 H2 セクションには必ず上下に余白を設ける: <h2 style="margin-top:48px;padding-top:8px;border-top:2px solid #e8e8e8;">
+- 各段落 <p> には style="margin-bottom:1.4em;line-height:1.85;" を付ける
 - <html><body><head>タグは不要、記事本文のみ
 - コードブロック（```）は使わない\
 """
@@ -323,7 +330,7 @@ USER_PROMPT_TEMPLATE = """\
 2. <h1> タイトル
 3. <div class="summary-box"> この記事でわかること（ul 3〜5項目）</div>
 4. 導入文 350字以上（読者の悩みを具体的に提示）
-5. H2 × 4〜5個（各H2直下に40〜60字の要点ボックス、各H2内にアフィリエイトCTA）
+5. H2 × 4〜5個（各H2直下に40〜60字の要点ボックス）※CTAは全体で2箇所のみ
 6. 料金・機能比較テーブル（thead/tbody使用、○△×や数値で明記）
 7. <h2>よくある質問</h2>（<dl><dt><dd> 形式で 4〜5 Q&A）
 8. <h2>まとめ</h2>（結論と強いCTAを含む）
@@ -430,11 +437,11 @@ def generate_article(topic: dict) -> tuple[str, str, str, str]:
     tool_data = load_tool_data()
     content = replace_affiliate_placeholders(content, tool_data)
 
-    # 6) セクション画像をH2の2番目の前に挿入
+    # 6) セクション画像をH2の2番目の前に挿入（アイキャッチと異なる画像）
     h2_matches = list(re.finditer(r"<h2[^>]*>", content))
     if len(h2_matches) >= 2:
         pos = h2_matches[1].start()
-        content = content[:pos] + _section_image_html(keyword, img_url) + content[pos:]
+        content = content[:pos] + _section_image_html(keyword, topic_id) + content[pos:]
 
     # 7) FAQ JSON-LD スキーマを抽出して末尾に追加
     faq_items = _extract_faq_items(content)
