@@ -22,7 +22,20 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install anthropic requests python-dotenv
+        run: pip install "anthropic>=0.40.0" requests python-dotenv
+
+      - name: Check secrets and environment
+        run: |
+          python -c "import anthropic; print('[OK] anthropic:', anthropic.__version__)"
+          if [ -z "${ANTHROPIC_API_KEY}" ]; then
+            echo '[FATAL] ANTHROPIC_API_KEY is not set in GitHub Secrets!'
+            exit 1
+          fi
+          echo "[OK] ANTHROPIC_API_KEY is set (length=${#ANTHROPIC_API_KEY})"
+          echo "[OK] WP_URL: ${WP_URL:-(not set - OK for article gen)}"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WP_URL: ${{ secrets.WP_URL }}
 
       - name: Generate article and save to repo
         run: python automation/run_affiliate.py
