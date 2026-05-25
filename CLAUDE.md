@@ -25,7 +25,7 @@
         │     └── マネタイズワーカー
         └── 🌐 アフィリエイト事業部（lightlog）
               ├── サイト: https://glowlog.net
-              ├── 自動投稿ワーカー（GitHub Actions / 毎日 JST 10:00）
+              ├── 自動投稿ワーカー（GitHub Actions / 毎日 JST 08:00）
               ├── トピック管理: automation/topics/saas_topics.json
               └── 進捗確認: tools/lightlog_status.py
 ```
