@@ -371,9 +371,9 @@ def mark_topic_as_posted(topic_id: int) -> None:
 # Main article generator
 # ---------------------------------------------------------------------------
 
-def generate_article(topic: dict) -> tuple[str, str]:
+def generate_article(topic: dict) -> tuple[str, str, str, str]:
     """
-    Returns (title, html_content) with:
+    Returns (title, html_content, meta_description, img_url) with:
     - SEO / AIO / LLMO optimised HTML
     - AI-generated or Unsplash eyecatch image
     - JSON-LD Article + FAQ schema
@@ -438,4 +438,4 @@ def generate_article(topic: dict) -> tuple[str, str]:
     eyecatch = _eyecatch_html(keyword, img_url)
     content = eyecatch + content + "\n" + article_schema + faq_schema
 
-    return title, content
+    return title, content, meta_description, img_url

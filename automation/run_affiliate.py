@@ -27,7 +27,7 @@ def main() -> int:
     print(f"[INFO] 処理トピック: {topic['title']}")
 
     try:
-        title, content = generate_article(topic)
+        title, content, meta_description, img_url = generate_article(topic)
     except Exception as e:
         print(f"[ERROR] 記事生成に失敗しました: {e}")
         return 1
@@ -35,12 +35,23 @@ def main() -> int:
     output_path = Path(__file__).parent.parent / "articles" / "latest.json"
     output_path.parent.mkdir(exist_ok=True)
     output_path.write_text(
-        json.dumps({"title": title, "content": content}, ensure_ascii=False, indent=2),
+        json.dumps(
+            {
+                "title":               title,
+                "content":             content,
+                "meta_description":    meta_description,
+                "featured_image_url":  img_url,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
         encoding="utf-8",
     )
     mark_topic_as_posted(topic["id"])
 
     print(f"[SUCCESS] 記事を保存しました: {title}")
+    print(f"[INFO]    メタ説明: {meta_description[:60]}...")
+    print(f"[INFO]    アイキャッチ: {img_url[:80]}")
     print("=" * 60)
     return 0
 
