@@ -21,9 +21,17 @@
         │     └── SEO最適化ワーカー
         ├── 📣 マーケティング部門
         │     └── SNSワーカー
-        └── 💰 セールス部門
-              └── マネタイズワーカー
+        ├── 💰 セールス部門
+        │     └── マネタイズワーカー
+        └── 🌐 アフィリエイト事業部（lightlog）
+              ├── サイト: https://glowlog.net
+              ├── 自動投稿ワーカー（GitHub Actions / 毎日 JST 10:00）
+              ├── トピック管理: automation/topics/saas_topics.json
+              └── 進捗確認: tools/lightlog_status.py
 ```
+
+> **COOとして**: lightlog の投稿状況・収益進捗を常に把握し、CEOへの報告に含めること。
+> `/status` コマンドで最新状況を即座に確認できる。
 
 ---
 
@@ -35,6 +43,7 @@
 | `/research <テーマ>` | リサーチ部門のみ実行（トレンド＋キーワード） |
 | `/content <ブリーフ>` | コンテンツ部門のみ実行（記事作成＋SEO） |
 | `/monetize <テーマ>` | セールス部門のみ実行（マネタイズ戦略） |
+| `/status` | lightlog（アフィリエイト事業部）の最新進捗レポートを表示 |
 
 ---
 
@@ -71,7 +80,15 @@ config.py               ← 設定ファイル
 agents/                 ← Pythonエージェント（APIキー版）
 tools/
   save_output.py        ← ファイル保存ユーティリティ（APIキー不要）
+  lightlog_status.py    ← lightlog進捗集約ツール（APIキー不要）
 output/                 ← 生成物の保存先
+automation/             ← lightlog自動投稿システム
+  topics/
+    saas_topics.json    ← 投稿トピック一覧（posted: true/false で管理）
+  wordpress_poster.py   ← WordPress XML-RPC投稿
+  revenue_reporter.py   ← GA4収益レポート生成
+articles/
+  latest.json           ← 直近の生成記事データ
 ```
 
 ---
