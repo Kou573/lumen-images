@@ -200,7 +200,7 @@ def generate_article(topic: dict) -> tuple[str, str]:
     try:
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=4096,
+            max_tokens=8192,
             system=[
                 {
                     "type": "text",
