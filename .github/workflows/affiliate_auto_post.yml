@@ -22,32 +22,45 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install "anthropic>=0.40.0" requests python-dotenv
+        run: |
+          pip install "anthropic>=0.40.0" requests python-dotenv
+          # openai はキーが設定されている場合のみ必要だが常にインストール
+          pip install "openai>=1.0.0"
 
       - name: Check secrets and environment
         run: |
           python -c "import anthropic; print('[OK] anthropic:', anthropic.__version__)"
           if [ -z "${ANTHROPIC_API_KEY}" ]; then
-            echo '[FATAL] ANTHROPIC_API_KEY is not set in GitHub Secrets!'
+            echo '[FATAL] ANTHROPIC_API_KEY is not set!'
             exit 1
           fi
-          echo "[OK] ANTHROPIC_API_KEY is set (length=${#ANTHROPIC_API_KEY})"
-          echo "[OK] WP_URL: ${WP_URL:-(not set - OK for article gen)}"
+          echo "[OK] ANTHROPIC_API_KEY set (length=${#ANTHROPIC_API_KEY})"
+          if [ -n "${OPENAI_API_KEY}" ]; then
+            python -c "import openai; print('[OK] openai:', openai.__version__)"
+            echo "[OK] OPENAI_API_KEY set → GPT-image generation ENABLED"
+          else
+            echo "[INFO] OPENAI_API_KEY not set → Unsplash images will be used"
+          fi
+          echo "[OK] WP_URL: ${WP_URL:-(not set)}"
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          WP_URL: ${{ secrets.WP_URL }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+          WP_URL:            ${{ secrets.WP_URL }}
 
       - name: Generate article and save to repo
         run: python automation/run_affiliate.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          WP_URL: ${{ secrets.WP_URL }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+          WP_URL:            ${{ secrets.WP_URL }}
 
-      - name: Commit article and updated topics
+      - name: Commit article, images and updated topics
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Actions"
           git add articles/latest.json automation/topics/saas_topics.json
+          # AI生成画像があればコミット
+          git add articles/images/ 2>/dev/null || true
           git diff --staged --quiet || git commit -m "Add new article [skip ci]"
           git push
 

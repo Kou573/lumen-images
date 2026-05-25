@@ -1,17 +1,33 @@
+"""
+Affiliate article generator with SEO / AIO / LLMO optimisations.
+
+AIO  = AI Overview (Google のAI概要) 対策
+LLMO = LLM Optimisation (ChatGPT・Perplexity 等に引用されやすい構造)
+SEO  = 従来の検索エンジン最適化
+"""
 from __future__ import annotations
 
 import json
 import re
-import sys
 import urllib.parse
+from datetime import datetime
 from pathlib import Path
 
 import anthropic
 
 AUTOMATION_DIR = Path(__file__).parent
-TOPICS_FILE = AUTOMATION_DIR / "topics" / "saas_topics.json"
+TOPICS_FILE    = AUTOMATION_DIR / "topics" / "saas_topics.json"
 TOOL_DATA_FILE = AUTOMATION_DIR / "tool_data.json"
+IMAGES_DIR     = AUTOMATION_DIR.parent / "articles" / "images"
 
+GITHUB_RAW_BASE = (
+    "https://raw.githubusercontent.com/Kou573/lumen-images/main/articles/images"
+)
+
+
+# ---------------------------------------------------------------------------
+# Tool data helpers
+# ---------------------------------------------------------------------------
 
 def load_tool_data() -> dict:
     if not TOOL_DATA_FILE.exists():
@@ -21,53 +37,45 @@ def load_tool_data() -> dict:
         return json.load(f)
 
 
+# ---------------------------------------------------------------------------
+# Affiliate CTA button
+# ---------------------------------------------------------------------------
+
 def _build_affiliate_html(tool_name: str, tool_data: dict) -> str:
     entry = tool_data.get(tool_name)
-    if entry:
-        url = entry["official_url"]
-    else:
-        query = urllib.parse.quote(f"{tool_name} 公式サイト")
-        url = f"https://www.google.com/search?q={query}"
-
-    safe_tool_name = tool_name.replace("'", "\\'")
-
+    url   = entry["official_url"] if entry else (
+        "https://www.google.com/search?q=" + urllib.parse.quote(f"{tool_name} 公式サイト")
+    )
+    safe = tool_name.replace("'", "\\'")
     return (
-        '<div class="affiliate-cta" style="margin:24px 0;padding:20px 24px;'
-        'background:linear-gradient(135deg,#f0f7ff,#e8f4e8);'
+        '<div class="affiliate-cta" style="margin:28px 0;padding:20px 24px;'
+        'background:linear-gradient(135deg,#eef5ff,#eaffef);'
         'border-radius:10px;border-left:4px solid #0066cc;'
-        'box-shadow:0 2px 8px rgba(0,102,204,0.12);">\n'
-        f'  <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#1a1a1a;">'
-        f'【PR】{tool_name} を試してみる</p>\n'
-        f'  <a href="{url}"\n'
-        '     target="_blank"\n'
-        '     rel="noopener noreferrer sponsored"\n'
-        f"     onclick=\"if(typeof gtag!=='undefined'){{gtag('event','tool_click',"
-        f"{{'tool_name':'{safe_tool_name}','event_category':'affiliate'}})}}\"\n"
-        '     style="display:inline-block;padding:12px 28px;'
-        'background:#0066cc;color:#fff;font-weight:700;font-size:15px;'
-        'text-decoration:none;border-radius:6px;letter-spacing:0.03em;'
-        'transition:background 0.2s;">\n'
-        f"    {tool_name} 公式サイトを確認する &#x2192;\n"
-        "  </a>\n"
-        '  <p style="margin:8px 0 0;font-size:12px;color:#666;">'
-        '※ 本記事のリンクは広告を含みます</p>\n'
-        "</div>"
+        'box-shadow:0 2px 10px rgba(0,102,204,0.10);">'
+        f'<p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#1a1a1a;">【PR】{tool_name} を試してみる</p>'
+        f'<a href="{url}" target="_blank" rel="noopener noreferrer sponsored"'
+        f' onclick="if(typeof gtag!==\'undefined\'){{gtag(\'event\',\'tool_click\','
+        f'{{\'tool_name\':\'{safe}\',\'event_category\':\'affiliate\'}})}}"'
+        ' style="display:inline-block;padding:12px 28px;background:#0066cc;color:#fff;'
+        'font-weight:700;font-size:15px;text-decoration:none;border-radius:6px;">'
+        f'{tool_name} 公式サイトを確認する &#x2192;</a>'
+        '<p style="margin:8px 0 0;font-size:11px;color:#888;">※ 広告リンクを含みます</p>'
+        '</div>'
     )
 
 
-def replace_affiliate_placeholders(html_content: str, tool_data: dict) -> str:
+def replace_affiliate_placeholders(html: str, tool_data: dict) -> str:
     pattern = re.compile(r"<!--\s*AFFILIATE_LINK:\s*(.+?)\s*-->")
+    result  = pattern.sub(lambda m: _build_affiliate_html(m.group(1).strip(), tool_data), html)
+    n = len(pattern.findall(html))
+    if n:
+        print(f"[INFO] アフィリエイトプレースホルダー {n} 件を置換しました。")
+    return result
 
-    def replacer(match: re.Match) -> str:
-        tool_name = match.group(1).strip()
-        return _build_affiliate_html(tool_name, tool_data)
 
-    replaced = pattern.sub(replacer, html_content)
-    count = len(pattern.findall(html_content))
-    if count:
-        print(f"[INFO] アフィリエイトプレースホルダーを {count} 件置換しました。")
-    return replaced
-
+# ---------------------------------------------------------------------------
+# Image generation (GPT-image / DALL-E 3 → fallback Unsplash)
+# ---------------------------------------------------------------------------
 
 CATEGORY_IMAGES: dict[str, str] = {
     "会計・経費管理":           "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&auto=format&fit=crop",
@@ -90,49 +98,249 @@ CATEGORY_IMAGES: dict[str, str] = {
 DEFAULT_IMAGE = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop"
 
 
-def _eyecatch_html(keyword: str, category: str) -> str:
-    img_url = CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
+def _generate_ai_image(keyword: str, category: str, topic_id: int) -> str:
+    """
+    GPT-image-1 (gpt-image-1) または DALL-E 3 で記事専用画像を生成する。
+    生成した画像は articles/images/{topic_id}.jpg に保存してGitHub raw URLを返す。
+    OPENAI_API_KEY が未設定の場合は Unsplash フォールバック URL を返す。
+    """
+    from config import OPENAI_API_KEY
+    if not OPENAI_API_KEY:
+        return CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
+
+    try:
+        import requests as req
+        from openai import OpenAI
+
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        prompt = (
+            f"Professional, clean blog header image for a Japanese business website. "
+            f"Topic: {keyword}. Category: {category}. "
+            "Modern flat illustration or infographic style. No text. "
+            "Soft blue and white color palette. 16:9 ratio composition."
+        )
+        print(f"[INFO] AI画像を生成中: {keyword}")
+
+        # gpt-image-1 を試みて、なければ dall-e-3 へフォールバック
+        for model in ("gpt-image-1", "dall-e-3"):
+            try:
+                resp = client.images.generate(
+                    model=model,
+                    prompt=prompt,
+                    size="1024x1024",
+                    quality="standard",
+                    n=1,
+                )
+                image_url = resp.data[0].url
+                break
+            except Exception:
+                continue
+        else:
+            raise RuntimeError("画像生成モデルが利用できませんでした")
+
+        # ダウンロードしてリポジトリに保存
+        IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+        img_path = IMAGES_DIR / f"{topic_id}.jpg"
+        img_bytes = req.get(image_url, timeout=30).content
+        img_path.write_bytes(img_bytes)
+        print(f"[INFO] AI画像を保存しました: {img_path.name}")
+
+        return f"{GITHUB_RAW_BASE}/{topic_id}.jpg"
+
+    except Exception as e:
+        print(f"[WARN] AI画像生成に失敗しました ({e})。Unsplash にフォールバック。")
+        return CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
+
+
+def _eyecatch_html(keyword: str, img_url: str) -> str:
     alt = keyword.replace('"', "&quot;")
     return (
         f'<figure class="wp-block-image size-large" style="margin:0 0 32px;">'
-        f'<img src="{img_url}" alt="{alt}" '
-        f'style="width:100%;height:auto;border-radius:10px;'
+        f'<img src="{img_url}" alt="{alt}" loading="eager"'
+        f' style="width:100%;height:auto;border-radius:10px;'
         f'box-shadow:0 4px 16px rgba(0,0,0,0.12);">'
         f'</figure>\n'
     )
 
 
-def _section_image_html(keyword: str, category: str, index: int) -> str:
-    """セクション内の補助画像（eyecatchとは別のURLでバリエーションを持たせる）"""
-    base_url = CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
-    # クエリパラメータで別カットを取得
-    variant_url = base_url.replace("w=1200", "w=800") + f"&q=80&sat=-10"
-    alt = f"{keyword} のイメージ {index}"
+def _section_image_html(keyword: str, img_url: str) -> str:
+    alt = keyword.replace('"', "&quot;") + " 解説イメージ"
+    # 同じ画像を少し暗くして使い回す
+    variant = img_url.replace("w=1200", "w=800") + ("" if "unsplash" not in img_url else "&bri=-5")
     return (
         f'<figure class="wp-block-image" style="margin:20px 0;">'
-        f'<img src="{variant_url}" alt="{alt}" '
-        f'style="width:100%;max-width:720px;height:auto;border-radius:8px;">'
+        f'<img src="{variant}" alt="{alt}" loading="lazy"'
+        f' style="width:100%;max-width:720px;height:auto;border-radius:8px;">'
         f'</figure>\n'
     )
 
 
-SYSTEM_PROMPT = """\
-あなたは日本語SEOアフィリエイトライターです。デジタルサービス・ツールの比較・レビュー記事を書きます。
-対応カテゴリ：SaaS・ビジネスツール、AIツール、レンタルサーバー、転職・キャリア、スキマバイト・副業
+# ---------------------------------------------------------------------------
+# JSON-LD schema helpers
+# ---------------------------------------------------------------------------
 
-【厳守ルール】
-- 読者：副業・効率化・転職に関心のある20〜40代
-- 語調：です・ます調、専門的だが読みやすい
-- SEO：メインキーワードを自然に本文に組み込む（詰め込まない）
-- 構成：導入→特徴比較→料金・条件→こんな人向け→まとめ
-- アフィリエイトリンク位置に <!-- AFFILIATE_LINK: ツール名 --> を挿入（各H2セクションに1箇所）
-- 比較テーブルをHTML <table>タグで作成（必須）
-- 事実に基づいて書く。不確かな情報は「〜とされている」と書く
-- 転職・求人カテゴリは慎重に。断定的な収入保証は書かない
-- 記事中の年号は2026年（「2025年最新」は書かない）
-- コンバージョンを高めるため、まとめセクションに強いCTAボタン用プレースホルダーを入れる\
+def _build_article_schema(title: str, url_slug: str, description: str) -> str:
+    today = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": title,
+        "description": description,
+        "datePublished": today,
+        "dateModified":  today,
+        "author": {
+            "@type": "Organization",
+            "name":  "Lightlog",
+            "url":   "https://glowlog.net"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name":  "Lightlog",
+            "logo":  {
+                "@type": "ImageObject",
+                "url":   "https://glowlog.net/wp-content/uploads/logo.png"
+            }
+        },
+        "mainEntityOfPage": {
+            "@type": "@id",
+            "@id":   f"https://glowlog.net/{url_slug}/"
+        }
+    }
+    return (
+        '<script type="application/ld+json">\n'
+        + json.dumps(schema, ensure_ascii=False, indent=2)
+        + '\n</script>\n'
+    )
+
+
+def _build_faq_schema(faq_items: list[dict]) -> str:
+    """faq_items: [{"q": "...", "a": "..."}, ...]"""
+    if not faq_items:
+        return ""
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": item["q"],
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text":  item["a"]
+                }
+            }
+            for item in faq_items
+        ]
+    }
+    return (
+        '<script type="application/ld+json">\n'
+        + json.dumps(schema, ensure_ascii=False, indent=2)
+        + '\n</script>\n'
+    )
+
+
+_FAQ_PATTERN = re.compile(
+    r'<h[23][^>]*>\s*(?:Q[\.．:：]?\s*|【Q】)?(.*?)\s*</h[23]>\s*<p>(.*?)</p>',
+    re.DOTALL | re.IGNORECASE
+)
+
+
+def _extract_faq_items(html: str) -> list[dict]:
+    """FAQ セクション内の Q&A を抽出する（ベストエフォート）。"""
+    faq_section = re.search(
+        r'<h2[^>]*>.*?よくある質問.*?</h2>(.*?)(?=<h2|$)',
+        html, re.DOTALL | re.IGNORECASE
+    )
+    if not faq_section:
+        return []
+    block = faq_section.group(1)
+    items = []
+    for m in re.finditer(
+        r'<(?:h3|dt)[^>]*>(.*?)</(?:h3|dt)>\s*<(?:p|dd)[^>]*>(.*?)</(?:p|dd)>',
+        block, re.DOTALL
+    ):
+        q = re.sub(r'<[^>]+>', '', m.group(1)).strip()
+        a = re.sub(r'<[^>]+>', '', m.group(2)).strip()
+        if q and a:
+            items.append({"q": q, "a": a[:200]})
+    return items[:5]
+
+
+# ---------------------------------------------------------------------------
+# System prompts (SEO / AIO / LLMO 対応)
+# ---------------------------------------------------------------------------
+
+SYSTEM_PROMPT = """\
+あなたは日本のSEO・AIO・LLMOに精通したアフィリエイトライターです。
+下記のルールに従って記事を作成してください。
+
+【SEO対策】
+- メインキーワードはタイトル・H1・最初のpタグ・まとめに必ず含める
+- LSIキーワード（関連語）を本文全体に自然に散りばめる
+- H2 → H3 の階層を正しく守る
+
+【AIO対策（Google AI Overview / AI概要）】
+- 各H2直下に40〜60字の「要点ボックス」 (<div class="summary-box">) を置く
+- 冒頭の「この記事でわかること」で記事の結論を先出しする
+- 「よくある質問」セクションは <dl><dt><dd> 形式で 4〜5 Q&A を書く
+- 数字・固有名詞・料金・日付を積極的に使い、AI が引用しやすい事実ベースの文章にする
+
+【LLMO対策（ChatGPT・Perplexity 等への最適化）】
+- 「結論→理由→根拠→具体例」の PREP 構造で各セクションを書く
+- ツール名・会社名・料金・機能を箇条書きで明示する
+- 比較テーブルに ○△× や 具体的数値 を入れる
+- 「〜によると」「〜のデータでは」など引用フレーズを使う（事実ベース）
+
+【その他ルール】
+- HTML形式（<h1><h2><h3><p><ul><li><table><dl><dt><dd>）
+- 記事中の年号は2026年（2025年最新は書かない）
+- <!-- AFFILIATE_LINK: ツール名 --> を各H2に1箇所挿入
+- <html><body><head>タグは不要、記事本文のみ
+- コードブロック（```）は使わない\
 """
 
+USER_PROMPT_TEMPLATE = """\
+以下のトピックで、SEO・AIO・LLMOに最適化されたアフィリエイト記事を書いてください。
+
+タイトル: {title}
+メインキーワード: {keyword}
+カテゴリ: {category}
+紹介ツール: {tools}
+メタ説明（140字以内）: ← 記事の冒頭コメントに <!-- META_DESCRIPTION: ... --> として埋め込む
+
+【必須構成】
+1. <!-- META_DESCRIPTION: 140字以内のメタ説明 -->（コメントとして冒頭）
+2. <h1> タイトル
+3. <div class="summary-box"> この記事でわかること（ul 3〜5項目）</div>
+4. 導入文 350字以上（読者の悩みを具体的に提示）
+5. H2 × 4〜5個（各H2直下に40〜60字の要点ボックス、各H2内にアフィリエイトCTA）
+6. 料金・機能比較テーブル（thead/tbody使用、○△×や数値で明記）
+7. <h2>よくある質問</h2>（<dl><dt><dd> 形式で 4〜5 Q&A）
+8. <h2>まとめ</h2>（結論と強いCTAを含む）
+9. 合計 2,200〜2,800字（日本語）
+
+【テーブルスタイル例】
+<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+  <thead><tr>
+    <th style="background:#1a5cad;color:#fff;padding:10px;border:1px solid #ddd;">項目</th>
+    ...
+  </tr></thead>
+  <tbody><tr>
+    <td style="padding:10px;border:1px solid #ddd;">内容</td>
+    ...
+  </tr></tbody>
+</table>
+
+【要点ボックスのスタイル例】
+<div class="summary-box" style="background:#f0f7ff;border-left:3px solid #1a5cad;padding:12px 16px;margin:12px 0;border-radius:4px;font-size:14px;">
+  <strong>ポイント：</strong>テキスト
+</div>\
+"""
+
+
+# ---------------------------------------------------------------------------
+# Topic management
+# ---------------------------------------------------------------------------
 
 def load_next_topic() -> dict | None:
     if not TOPICS_FILE.exists():
@@ -159,80 +367,75 @@ def mark_topic_as_posted(topic_id: int) -> None:
     print(f"[INFO] トピック ID={topic_id} を投稿済みにマークしました。")
 
 
+# ---------------------------------------------------------------------------
+# Main article generator
+# ---------------------------------------------------------------------------
+
 def generate_article(topic: dict) -> tuple[str, str]:
+    """
+    Returns (title, html_content) with:
+    - SEO / AIO / LLMO optimised HTML
+    - AI-generated or Unsplash eyecatch image
+    - JSON-LD Article + FAQ schema
+    - Affiliate CTA buttons
+    """
     from config import ANTHROPIC_API_KEY
 
-    title: str = topic["title"]
-    keyword: str = topic.get("keyword", title)
-    category: str = topic.get("category", "")
+    title:          str       = topic["title"]
+    keyword:        str       = topic.get("keyword", title)
+    category:       str       = topic.get("category", "")
+    topic_id:       int       = topic.get("id", 0)
     affiliate_tools: list[str] = topic.get("affiliate_tools", [])
-
     tools_str = "、".join(affiliate_tools) if affiliate_tools else "各ツール"
 
-    user_prompt = f"""\
-以下のトピックでSEOアフィリエイト記事を書いてください。
+    # 1) 画像を取得（AI生成 or Unsplash）
+    img_url = _generate_ai_image(keyword, category, topic_id)
 
-タイトル: {title}
-メインキーワード: {keyword}
-カテゴリ: {category}
-紹介するツール: {tools_str}
-
-【必須要件】
-1. HTML形式で出力（<h2>, <h3>, <p>, <ul>, <li>, <table> タグを使用）
-2. <h1>タグでタイトルを最初に書く
-3. 導入文 400字以上（読者の課題・悩みを具体的に提示してから記事の価値を説明）
-4. H2セクション 4〜5個
-5. 各H2セクション内に <!-- AFFILIATE_LINK: ツール名 --> を1箇所挿入
-6. 料金・機能比較テーブルをHTMLで作成（thead/tbody使用、スタイル付き）:
-   - style="width:100%;border-collapse:collapse;margin:20px 0;"
-   - thにstyle="background:#f0f0f0;padding:10px;text-align:left;border:1px solid #ddd;"
-   - tdにstyle="padding:10px;border:1px solid #ddd;"
-7. 「こんな人におすすめ」チェックリスト（<ul>+<li>で5項目以上）
-8. まとめセクション 300字以上（明確な推薦と <!-- AFFILIATE_LINK: ツール名 --> を末尾に）
-9. 合計 2,000〜2,500字
-10. <html>, <body>, <head> タグは不要。記事本文のみ出力。
-11. コードブロック（```html など）は使わない。HTMLタグをそのまま出力。\
-"""
-
+    # 2) Claude で記事本文を生成
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    user_prompt = USER_PROMPT_TEMPLATE.format(
+        title=title, keyword=keyword, category=category, tools=tools_str
+    )
     print(f"[INFO] 記事生成開始: {title}")
 
-    try:
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=8192,
-            system=[
-                {
-                    "type": "text",
-                    "text": SYSTEM_PROMPT,
-                    "cache_control": {"type": "ephemeral"},
-                }
-            ],
-            messages=[{"role": "user", "content": user_prompt}],
-        )
-        content = response.content[0].text
-        print(f"[INFO] 記事生成完了: {len(content)}文字")
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=8192,
+        system=[{"type": "text", "text": SYSTEM_PROMPT,
+                 "cache_control": {"type": "ephemeral"}}],
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+    content: str = response.content[0].text
+    print(f"[INFO] 記事生成完了: {len(content)}文字")
 
-        # ```html や ``` のコードブロックマーカーを除去
-        content = re.sub(r"^```html\s*\n?", "", content.strip())
-        content = re.sub(r"\n?```\s*$", "", content.strip())
+    # 3) コードブロックマーカーを除去
+    content = re.sub(r"^```html\s*\n?", "", content.strip())
+    content = re.sub(r"\n?```\s*$", "",  content.strip())
 
-        # アフィリエイトプレースホルダーをGA4イベント付きボタンHTMLに置換
-        tool_data = load_tool_data()
-        content = replace_affiliate_placeholders(content, tool_data)
+    # 4) メタ説明を抽出（後で wp_insert_post の excerpt に使える）
+    meta_m = re.search(r'<!--\s*META_DESCRIPTION:\s*(.+?)\s*-->', content)
+    meta_description = meta_m.group(1).strip() if meta_m else title
 
-        # セクション画像を中間部分に追加（h2の2番目の後ろ）
-        section_img = _section_image_html(keyword, category, 1)
-        h2_matches = list(re.finditer(r"<h2[^>]*>", content))
-        if len(h2_matches) >= 2:
-            insert_pos = h2_matches[1].start()
-            content = content[:insert_pos] + section_img + content[insert_pos:]
+    # 5) アフィリエイトプレースホルダーをボタンHTMLに置換
+    tool_data = load_tool_data()
+    content = replace_affiliate_placeholders(content, tool_data)
 
-        # 記事冒頭にアイキャッチ画像を追加
-        eyecatch = _eyecatch_html(keyword, category)
-        content = eyecatch + content
+    # 6) セクション画像をH2の2番目の前に挿入
+    h2_matches = list(re.finditer(r"<h2[^>]*>", content))
+    if len(h2_matches) >= 2:
+        pos = h2_matches[1].start()
+        content = content[:pos] + _section_image_html(keyword, img_url) + content[pos:]
 
-        return title, content
-    except anthropic.APIError as e:
-        print(f"[ERROR] Claude API エラー: {e}")
-        raise
+    # 7) FAQ JSON-LD スキーマを抽出して末尾に追加
+    faq_items = _extract_faq_items(content)
+    faq_schema = _build_faq_schema(faq_items)
+
+    # 8) Article JSON-LD スキーマ
+    slug = re.sub(r'[^\w\-]', '-', keyword.lower())
+    article_schema = _build_article_schema(title, slug, meta_description)
+
+    # 9) アイキャッチ画像を冒頭に追加し、スキーマを末尾に追加
+    eyecatch = _eyecatch_html(keyword, img_url)
+    content = eyecatch + content + "\n" + article_schema + faq_schema
+
+    return title, content
