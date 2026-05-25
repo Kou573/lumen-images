@@ -98,15 +98,25 @@ CATEGORY_IMAGES: dict[str, str] = {
 DEFAULT_IMAGE = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop"
 
 
+def _unsplash_fallback(category: str, topic_id: int) -> str:
+    """
+    カテゴリ対応の Unsplash 画像を返す。
+    sig=topic_id を追加することで記事ごとに異なる画像が配信される。
+    """
+    base = CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
+    sep  = "&" if "?" in base else "?"
+    return f"{base}{sep}sig={topic_id}"
+
+
 def _generate_ai_image(keyword: str, category: str, topic_id: int) -> str:
     """
     GPT-image-1 (gpt-image-1) または DALL-E 3 で記事専用画像を生成する。
     生成した画像は articles/images/{topic_id}.jpg に保存してGitHub raw URLを返す。
-    OPENAI_API_KEY が未設定の場合は Unsplash フォールバック URL を返す。
+    OPENAI_API_KEY が未設定の場合は Unsplash フォールバック URL を返す（sig で記事ごとに差別化）。
     """
     from config import OPENAI_API_KEY
     if not OPENAI_API_KEY:
-        return CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
+        return _unsplash_fallback(category, topic_id)
 
     try:
         import requests as req
@@ -149,7 +159,7 @@ def _generate_ai_image(keyword: str, category: str, topic_id: int) -> str:
 
     except Exception as e:
         print(f"[WARN] AI画像生成に失敗しました ({e})。Unsplash にフォールバック。")
-        return CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
+        return _unsplash_fallback(category, topic_id)
 
 
 def _eyecatch_html(keyword: str, img_url: str) -> str:
