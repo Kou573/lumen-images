@@ -23,11 +23,18 @@
         │     └── SNSワーカー
         ├── 💰 セールス部門
         │     └── マネタイズワーカー
-        └── 🌐 アフィリエイト事業部（lightlog）
-              ├── サイト: https://glowlog.net
-              ├── 自動投稿ワーカー（GitHub Actions / 毎日 JST 08:00）
-              ├── トピック管理: automation/topics/saas_topics.json
-              └── 進捗確認: tools/lightlog_status.py
+        ├── 🌐 アフィリエイト事業部（lightlog）
+        │     ├── サイト: https://glowlog.net
+        │     ├── 自動投稿ワーカー（GitHub Actions / 毎日 JST 08:00）
+        │     ├── トピック管理: automation/topics/saas_topics.json
+        │     └── 進捗確認: tools/lightlog_status.py
+        ├── 📸 Lumen IG部門
+        │     ├── Instagram自動投稿（毎朝8時、現在Coworkで稼働中）
+        │     └── scripts/ ← daily_post.py等を今後ここに移行
+        ├── 📰 aiNEWS部門
+        │     └── AIニュース収集→Slack #ai-news 配信（毎朝8時）
+        └── 🎸 BandHub部門
+              └── Notion全DBバックアップ（毎週日曜23時）
 ```
 
 > **COOとして**: lightlog の投稿状況・収益進捗を常に把握し、CEOへの報告に含めること。
