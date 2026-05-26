@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 23 * * *'  # JST 08:00 (UTC 23:00)
   workflow_dispatch:
+    inputs:
+      force_regenerate:
+        description: '当日生成済みでも強制再生成する（スパム防止ガードをバイパス）'
+        required: false
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ['.trigger']
@@ -47,25 +53,54 @@ jobs:
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           WP_URL:            ${{ secrets.WP_URL }}
 
+      # ----------------------------------------------------------------
+      # 記事生成
+      # 終了コード 0 = 成功 or スキップ（エラーなし）
+      # 新規生成時のみ articles/.new_article マーカーが書かれる
+      # ----------------------------------------------------------------
       - name: Generate article and save to repo
         run: python automation/run_affiliate.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           WP_URL:            ${{ secrets.WP_URL }}
+          FORCE_REGENERATE:  ${{ github.event.inputs.force_regenerate || 'false' }}
 
+      # ----------------------------------------------------------------
+      # コミット・プッシュ（新規記事が生成された場合のみ）
+      # articles/.new_article マーカーの有無で判断
+      # ----------------------------------------------------------------
       - name: Commit article, images and updated topics
         run: |
+          if [ ! -f articles/.new_article ]; then
+            echo "[SKIP] 新規記事なし — コミットをスキップします。"
+            exit 0
+          fi
+          TOPIC_ID=$(cat articles/.new_article)
+          echo "[INFO] 新規記事 (topic_id=${TOPIC_ID}) をコミットします。"
+
           git config user.email "action@github.com"
           git config user.name "GitHub Actions"
           git add articles/latest.json automation/topics/saas_topics.json
           # AI生成画像があればコミット
           git add articles/images/ 2>/dev/null || true
-          git diff --staged --quiet || git commit -m "Add new article [skip ci]"
+          git diff --staged --quiet || git commit -m "Add new article (topic_id=${TOPIC_ID}) [skip ci]"
           git push
 
+      # ----------------------------------------------------------------
+      # WP-Cron トリガー（新規記事が生成された場合のみ）
+      # ※ 毎回発火すると同一記事が WordPress に重複投稿されるためガードが必須
+      # ----------------------------------------------------------------
       - name: Trigger WordPress WP-Cron
         run: |
+          if [ ! -f articles/.new_article ]; then
+            echo "[SKIP] 新規記事なし — WP-Cron トリガーをスキップします。"
+            exit 0
+          fi
           WP_URL="${{ secrets.WP_URL }}"
+          if [ -z "${WP_URL}" ]; then
+            echo "[WARN] WP_URL が未設定のため WP-Cron トリガーをスキップします。"
+            exit 0
+          fi
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${WP_URL}/wp-cron.php?doing_wp_cron")
-          echo "WP-Cron status: ${STATUS}"
+          echo "[INFO] WP-Cron status: ${STATUS}"

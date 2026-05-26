@@ -3,3 +3,5 @@ __pycache__/
 *.pyo
 .env
 .claude/worktrees/
+# ワークフロー内部フラグ（コミット対象外）
+articles/.new_article
