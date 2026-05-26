@@ -1,0 +1,5 @@
+requests
+beautifulsoup4
+anthropic
+slack_sdk
+lxml
