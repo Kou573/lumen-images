@@ -5,9 +5,15 @@ on:
     - cron: '0 0 * * 1'  # 毎週月曜 JST 9:00 (UTC 00:00)
   workflow_dispatch:       # 手動実行も可能
 
+# 同時実行を防止
+concurrency:
+  group: note-draft-generator
+  cancel-in-progress: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # 15分でタイムアウト
     permissions:
       contents: write  # 生成したドラフトファイルをコミットするために必要
 
