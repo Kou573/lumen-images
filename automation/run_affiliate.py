@@ -33,30 +33,40 @@ def main() -> int:
         print(f"[ERROR] 記事生成に失敗しました: {e}")
         return 1
 
-    # WordPress へ直接投稿（XML-RPC）
-    result = post_article(title, content)
-    if "error" in result:
-        print(f"[ERROR] WordPress投稿に失敗しました: {result['error']}")
-        return 1
-    wp_post_id = result.get("id")
-    print(f"[SUCCESS] WordPress投稿完了: ID={wp_post_id}  URL={result.get('link')}")
-
+    # ── latest.json に保存 ──
     output_path = Path(__file__).parent.parent / "articles" / "latest.json"
     output_path.parent.mkdir(exist_ok=True)
     output_path.write_text(
         json.dumps(
             {
-                "title":               title,
-                "content":             content,
-                "meta_description":    meta_description,
-                "featured_image_url":  img_url,
-                "wp_post_id":          wp_post_id,
+                "title":              title,
+                "content":            content,
+                "meta_description":   meta_description,
+                "featured_image_url": img_url,
+                "wp_post_id":         None,
             },
             ensure_ascii=False,
             indent=2,
         ),
         encoding="utf-8",
     )
+
+    # ── WordPress へ投稿（アイキャッチ + メタ説明を渡す） ──
+    result = post_article(
+        title=title,
+        content=content,
+        featured_image_url=img_url,
+        meta_description=meta_description,
+        tags=topic.get("affiliate_tools", []),
+    )
+
+    if "error" in result:
+        print(f"[WARN] WordPress 投稿に失敗しました: {result['error']}")
+        print("[INFO] 記事は latest.json に保存済みです。手動で投稿してください。")
+    else:
+        wp_post_id = result.get("id")
+        print(f"[SUCCESS] WordPress 投稿完了: ID={wp_post_id}  URL={result.get('link', '')}")
+
     mark_topic_as_posted(topic["id"])
 
     print(f"[INFO]    メタ説明: {meta_description[:60]}...")

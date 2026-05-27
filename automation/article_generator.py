@@ -42,24 +42,55 @@ def load_tool_data() -> dict:
 # ---------------------------------------------------------------------------
 
 def _build_affiliate_html(tool_name: str, tool_data: dict) -> str:
-    entry = tool_data.get(tool_name)
-    url   = entry["official_url"] if entry else (
+    entry    = tool_data.get(tool_name) or {}
+    url      = entry.get("official_url") or (
         "https://www.google.com/search?q=" + urllib.parse.quote(f"{tool_name} 公式サイト")
     )
-    safe = tool_name.replace("'", "\\'")
+    logo_url = entry.get("logo_url", "")
+    category = entry.get("category", "")
+    safe     = tool_name.replace("'", "\\'")
+
+    # ── ロゴ部分（logo_url があれば表示） ──
+    if logo_url:
+        logo_html = (
+            f'<img src="{logo_url}" alt="{tool_name} ロゴ" width="52" height="52" '
+            'loading="lazy" style="border-radius:10px;border:1px solid #dde8fa;'
+            'background:#fff;padding:5px;object-fit:contain;flex-shrink:0;">'
+        )
+    else:
+        logo_html = (
+            '<div style="width:52px;height:52px;border-radius:10px;'
+            'background:#0066cc;display:flex;align-items:center;justify-content:center;'
+            'color:#fff;font-weight:700;font-size:18px;flex-shrink:0;">'
+            f'{tool_name[0]}</div>'
+        )
+
+    cat_html = (
+        f'<span style="font-size:12px;color:#666;">{category}</span>' if category else ""
+    )
+
     return (
-        '<div class="affiliate-cta" style="margin:28px 0;padding:20px 24px;'
+        '<div class="affiliate-cta" style="margin:32px 0;padding:22px 24px;'
         'background:linear-gradient(135deg,#eef5ff,#eaffef);'
-        'border-radius:10px;border-left:4px solid #0066cc;'
-        'box-shadow:0 2px 10px rgba(0,102,204,0.10);">'
-        f'<p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#1a1a1a;">【PR】{tool_name} を試してみる</p>'
+        'border-radius:12px;border-left:4px solid #0066cc;'
+        'box-shadow:0 4px 16px rgba(0,102,204,0.12);">'
+        # ── ヘッダー行：ロゴ + ツール名 ──
+        '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">'
+        f'{logo_html}'
+        '<div>'
+        f'<p style="margin:0 0 3px;font-size:16px;font-weight:700;color:#1a1a1a;">{tool_name}</p>'
+        f'{cat_html}'
+        '</div>'
+        '</div>'
+        # ── CTA ボタン ──
         f'<a href="{url}" target="_blank" rel="noopener noreferrer sponsored"'
         f' onclick="if(typeof gtag!==\'undefined\'){{gtag(\'event\',\'tool_click\','
         f'{{\'tool_name\':\'{safe}\',\'event_category\':\'affiliate\'}})}}"'
-        ' style="display:inline-block;padding:12px 28px;background:#0066cc;color:#fff;'
-        'font-weight:700;font-size:15px;text-decoration:none;border-radius:6px;">'
+        ' style="display:inline-block;padding:13px 32px;background:#0066cc;color:#fff;'
+        'font-weight:700;font-size:15px;text-decoration:none;border-radius:8px;'
+        'box-shadow:0 2px 8px rgba(0,102,204,0.30);">'
         f'{tool_name} 公式サイトを確認する &#x2192;</a>'
-        '<p style="margin:8px 0 0;font-size:11px;color:#888;">※ 広告リンクを含みます</p>'
+        '<p style="margin:10px 0 0;font-size:11px;color:#999;">※ 広告リンクを含みます</p>'
         '</div>'
     )
 
@@ -181,14 +212,108 @@ def _generate_ai_image(keyword: str, category: str, topic_id: int) -> str:
         return _unsplash_fallback(category, topic_id)
 
 
-def _eyecatch_html(keyword: str, img_url: str) -> str:
-    alt = keyword.replace('"', "&quot;")
+def _estimate_read_time(content: str) -> int:
+    """HTML タグを除去した文字数から読了時間（分）を推定する（日本語 400字/分）。"""
+    text = re.sub(r"<[^>]+>", "", content)
+    return max(3, round(len(text) / 400))
+
+
+def _eyecatch_html(
+    keyword: str,
+    img_url: str,
+    category: str = "",
+    read_time: int = 0,
+) -> str:
+    """
+    ヒーローバナー HTML。
+    - 画像の下部にグラデーションオーバーレイ
+    - カテゴリバッジ + 読了時間を表示
+    """
+    alt       = keyword.replace('"', "&quot;")
+    cat_badge = ""
+    if category:
+        cat_badge = (
+            f'<span style="display:inline-block;background:#0066cc;color:#fff;'
+            f'font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;'
+            f'letter-spacing:0.8px;margin-bottom:10px;">{category}</span>'
+        )
+    rt_badge = ""
+    if read_time:
+        rt_badge = (
+            f'<span style="color:rgba(255,255,255,0.88);font-size:13px;">'
+            f'📖 読了時間：約{read_time}分 &nbsp;|&nbsp; 🗓 2026年最新</span>'
+        )
+
     return (
-        f'<figure class="wp-block-image size-large" style="margin:0 0 32px;">'
+        '<div class="article-hero" style="position:relative;width:100%;margin:0 0 40px;'
+        'border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.20);">'
         f'<img src="{img_url}" alt="{alt}" loading="eager"'
-        f' style="width:100%;height:auto;border-radius:10px;'
-        f'box-shadow:0 4px 16px rgba(0,0,0,0.12);">'
-        f'</figure>\n'
+        ' style="width:100%;height:380px;object-fit:cover;display:block;">'
+        # グラデーションオーバーレイ
+        '<div style="position:absolute;inset:0;'
+        'background:linear-gradient(170deg,rgba(0,30,80,0.06) 30%,rgba(0,20,60,0.68) 100%);">'
+        '</div>'
+        # バッジエリア
+        '<div style="position:absolute;bottom:0;left:0;right:0;padding:24px 32px;">'
+        f'{cat_badge}<br>'
+        f'{rt_badge}'
+        '</div>'
+        '</div>\n'
+    )
+
+
+def _tool_overview_html(affiliate_tools: list[str], tool_data: dict) -> str:
+    """
+    記事冒頭に挿入する「この記事で紹介するツール」カードグリッド。
+    logo_url があればロゴ画像を表示し、権威性を高める。
+    """
+    if not affiliate_tools:
+        return ""
+
+    cards = []
+    for name in affiliate_tools:
+        entry    = tool_data.get(name) or {}
+        logo_url = entry.get("logo_url", "")
+        url      = entry.get("official_url", "#")
+
+        if logo_url:
+            logo_html = (
+                f'<img src="{logo_url}" alt="{name} ロゴ" width="36" height="36" '
+                'loading="lazy" style="border-radius:6px;object-fit:contain;'
+                'background:#fff;border:1px solid #e4ecfa;padding:3px;">'
+            )
+        else:
+            logo_html = (
+                '<div style="width:36px;height:36px;border-radius:6px;'
+                'background:#0066cc;color:#fff;font-weight:700;font-size:14px;'
+                'display:flex;align-items:center;justify-content:center;">'
+                f'{name[0]}</div>'
+            )
+
+        cards.append(
+            f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
+            'style="display:flex;align-items:center;gap:10px;'
+            'background:#fff;border:1px solid #dde8fa;border-radius:8px;'
+            'padding:10px 14px;text-decoration:none;min-width:150px;'
+            'transition:box-shadow 0.2s;" '
+            'onmouseover="this.style.boxShadow=\'0 4px 12px rgba(0,102,204,0.15)\'" '
+            'onmouseout="this.style.boxShadow=\'none\'">'
+            f'{logo_html}'
+            f'<span style="font-size:14px;font-weight:600;color:#1a1a1a;">{name}</span>'
+            '</a>'
+        )
+
+    cards_html = "\n    ".join(cards)
+    return (
+        '<div class="tools-overview" '
+        'style="background:#f4f8ff;border:1px solid #d0e0ff;border-radius:12px;'
+        'padding:20px 24px;margin:0 0 36px;">'
+        '<p style="margin:0 0 14px;font-size:12px;font-weight:700;color:#555;'
+        'text-transform:uppercase;letter-spacing:1.2px;">この記事で紹介するツール</p>'
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;">'
+        f'\n    {cards_html}\n'
+        '</div>'
+        '</div>\n'
     )
 
 
@@ -470,8 +595,10 @@ def generate_article(topic: dict) -> tuple[str, str, str, str]:
     slug = re.sub(r'[^\w\-]', '-', keyword.lower())
     article_schema = _build_article_schema(title, slug, meta_description)
 
-    # 9) アイキャッチ画像を冒頭に追加し、スキーマを末尾に追加
-    eyecatch = _eyecatch_html(keyword, img_url)
-    content = eyecatch + content + "\n" + article_schema + faq_schema
+    # 9) アイキャッチ（ヒーローバナー）・ツール紹介カードを冒頭に追加し、スキーマを末尾に追加
+    read_time    = _estimate_read_time(content)
+    eyecatch     = _eyecatch_html(keyword, img_url, category=category, read_time=read_time)
+    tool_overview = _tool_overview_html(affiliate_tools, tool_data)
+    content = eyecatch + tool_overview + content + "\n" + article_schema + faq_schema
 
     return title, content, meta_description, img_url
