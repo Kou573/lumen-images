@@ -18,10 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Python dependencies
-        run: pip install requests beautifulsoup4 slack_sdk lxml
-
-      - name: Fetch raw news
-        run: python ai-news/fetch_raw_news.py > /tmp/raw_news.txt
+        run: pip install slack_sdk
 
       - uses: actions/setup-node@v4
         with:
@@ -30,9 +27,58 @@ jobs:
       - name: Install Claude Code CLI
         run: npm install -g @anthropic-ai/claude-code
 
-      - name: Summarize and post
+      - name: Collect, summarize and post
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: |
-          claude -p "$(printf '以下のAIニュースサイトの生データから、過去24時間以内の重要ニュースをSlack向けにまとめてください。\n\n【優先順位（高い順）】\n1. 大手LLMの新モデルリリース・バージョンアップ（OpenAI / Anthropic / Google / DeepMind / Meta）\n2. API仕様変更・料金改定・廃止予告\n3. 障害・インシデント情報\n4. 大型資金調達・買収・提携\n5. その他の業界動向\n\n【出力フォーマット（厳守）】\n\n1行目: 🤖 AI最新ニュース | {今日の日付（例: 2026年5月27日（水））}\n\n🔴 【要注意】セクションは、モデル廃止予告・API破壊的変更・大規模障害など開発者が即対応すべき場合のみ冒頭に追加する（通常は省略）:\n🔴 【要注意】*タイトル*\n内容\n• 詳細\n:paperclip: <URL>\n\n企業別セクション（該当する企業のみ、情報がない場合は省略）:\n🟢 OpenAI\n🔵 Anthropic\n🟡 Google / DeepMind\n⚪ その他企業\n\n各セクション内のニュースは:\n*① タイトル*\n1〜2行の説明\n• 詳細は箇条書き\n> 背景・影響（重要な場合のみ）\n:paperclip: <URL>\n\n最後に:\n📌 業界動向\n_収集元: [使用したソース名] / 対象期間: 過去24時間_\n\n【ルール】\n- 区切り線（---）は使わない\n- セクション間は空行1行のみ\n- URLは:paperclip: の後に<URL>形式で\n- 日本語で出力\n- 情報がない日は「本日の主要アップデートなし」と記載\n\n--- データ ---\n'; head -c 20000 /tmp/raw_news.txt)" | python ai-news/post_to_slack.py
+          claude -p "$(cat <<'PROMPT'
+あなたはAI業界ニュースキュレーターです。今日の日付を確認し、過去24時間以内のAIニュースをWebSearchとWebFetchを使って収集・要約し、Slack向けにまとめてください。
+
+【ステップ1: 今日の日付を確認】
+まず現在の日時（JST）を確認する。
+
+【ステップ2: WebSearchで最新ニュースを検索】
+以下のクエリを順番に実行し、過去24時間以内の記事を探す：
+1. site:openai.com OR site:anthropic.com OR site:blog.google [今日の日付 英語表記 例: "May 27 2026"]
+2. OpenAI Anthropic Google AI model release news [今日の日付] 2026
+3. OpenAI Anthropic Google AI API changelog [今日の日付] 2026
+4. AI news [今日の日付] 2026 site:techcrunch.com OR site:theverge.com OR site:venturebeat.com
+
+【ステップ3: 公式サイトをWebFetchで直接確認】
+以下のURLを順にWebFetchで取得し、最新記事のタイトルと日付を確認する：
+- https://openai.com/news/
+- https://www.anthropic.com/news
+- https://docs.anthropic.com/en/release-notes/overview
+- https://platform.openai.com/docs/changelog
+- https://ai.google.dev/gemini-api/docs/changelog
+- https://status.openai.com
+- https://status.anthropic.com
+
+気になる記事は個別URLをWebFetchで読み込んで内容を深掘りすること。
+
+【ステップ4: 優先順位に従って整理】
+1位: 大手LLMの新モデルリリース・バージョンアップ（OpenAI/Anthropic/Google/DeepMind/Meta）
+2位: API仕様変更・料金改定・廃止予告
+3位: 障害・インシデント情報
+4位: 大型資金調達・買収・提携
+5位: その他業界動向
+
+【ステップ5: 以下のフォーマットで出力】
+
+出力フォーマット（厳守）:
+- 1行目: 🤖 AI最新ニュース | [今日の日付（例: 2026年5月27日（水））]
+- 🔴【要注意】セクションは「廃止予告・破壊的API変更・大規模障害」など緊急時のみ冒頭に追加（通常は省略）
+- 企業別セクション（情報がある企業のみ）: 🟢 OpenAI / 🔵 Anthropic / 🟡 Google / DeepMind / ⚪ その他
+- 各ニュースは: *① タイトル* → 説明1〜2行 → 箇条書き詳細 → > 背景・影響（重要時のみ） → :paperclip: <URL>
+- 最後: 📌 業界動向 → _収集元: [ソース名] / 対象期間: 過去24時間_
+
+フォーマットルール:
+- 区切り線（---）は使わない
+- セクション間は空行1行のみ
+- URLは :paperclip: <URL> 形式
+- 情報がない企業セクションは省略
+- 表面的な要約でなく背景・業界影響まで深掘りすること
+- 日本語で出力
+PROMPT
+)" | python ai-news/post_to_slack.py
