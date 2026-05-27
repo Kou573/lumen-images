@@ -8,15 +8,35 @@ on:
 jobs:
   send-ai-news:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r ai-news/requirements.txt
-      - name: Fetch and send AI news
+
+      - name: Install Python dependencies
+        run: pip install requests beautifulsoup4 slack_sdk lxml
+
+      - name: Fetch raw news
+        run: python ai-news/fetch_raw_news.py > /tmp/raw_news.txt
+
+      - name: Summarize and post with Claude Code
+        uses: anthropic/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            以下のファイル `/tmp/raw_news.txt` に今日の各AIサイトの生データが入っています。
+
+            やること:
+            1. `cat /tmp/raw_news.txt` で内容を確認する
+            2. 過去24時間以内のOpenAI・Anthropic・Google AIの重要ニュースを選別・深掘り・要約する
+               - モデルリリース、API仕様変更、ビジネス動向、障害情報を優先
+               - 各ニュースにソースURLを添付
+               - Slack向けMarkdown形式（*太字*、リスト）
+            3. まとめたテキストを標準入力として `python ai-news/post_to_slack.py` に渡す
+               例: `echo "まとめ内容" | python ai-news/post_to_slack.py`
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        run: python ai-news/fetch_news.py
