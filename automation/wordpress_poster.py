@@ -11,6 +11,35 @@ logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
 # ---------------------------------------------------------------------------
+# Duplicate-post guard
+# ---------------------------------------------------------------------------
+
+def find_existing_post(
+    server: xmlrpc.client.ServerProxy,
+    username: str,
+    password: str,
+    title: str,
+) -> str | None:
+    """
+    WordPress 上に同じタイトルの公開済み記事が存在するか検索する。
+    見つかれば post_id（文字列）を返し、なければ None を返す。
+    XML-RPC が利用できない環境ではログを出して None を返す（投稿続行）。
+    """
+    try:
+        posts = server.wp.getPosts(
+            1, username, password,
+            {"search": title, "number": 10, "post_status": "publish"},
+            ["post_id", "post_title"],
+        )
+        for post in posts:
+            if post.get("post_title", "").strip() == title.strip():
+                return str(post["post_id"])
+    except Exception as e:
+        logger.warning("既存記事の重複チェックに失敗しました（投稿は続行）: %s", e)
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Media upload helper
 # ---------------------------------------------------------------------------
 
@@ -95,6 +124,20 @@ def post_article(
 
     try:
         server = xmlrpc.client.ServerProxy(endpoint)
+
+        # ── 重複投稿ガード：同タイトルの記事が既に存在すればスキップ ──
+        existing_id = find_existing_post(server, WP_USERNAME, WP_APP_PASSWORD, title)
+        if existing_id:
+            logger.info(
+                "同じタイトルの記事が WordPress に既に存在します (ID=%s)。"
+                "重複投稿をスキップします。",
+                existing_id,
+            )
+            return {
+                "id":      existing_id,
+                "skipped": True,
+                "link":    f"{WP_URL.rstrip('/')}/?p={existing_id}",
+            }
 
         post_data: dict = {
             "post_title":   title,

@@ -8,7 +8,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from article_generator import generate_article, load_next_topic, mark_topic_as_posted
 from config import validate_affiliate_config
-from wordpress_poster import post_article
 
 
 def main() -> int:
@@ -43,6 +42,7 @@ def main() -> int:
                 "content":            content,
                 "meta_description":   meta_description,
                 "featured_image_url": img_url,
+                # wp_post_id は WordPress 投稿ステップで設定される（post_to_wordpress.py）
                 "wp_post_id":         None,
             },
             ensure_ascii=False,
@@ -51,26 +51,13 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    # ── WordPress へ投稿（アイキャッチ + メタ説明を渡す） ──
-    result = post_article(
-        title=title,
-        content=content,
-        featured_image_url=img_url,
-        meta_description=meta_description,
-        tags=topic.get("affiliate_tools", []),
-    )
-
-    if "error" in result:
-        print(f"[WARN] WordPress 投稿に失敗しました: {result['error']}")
-        print("[INFO] 記事は latest.json に保存済みです。手動で投稿してください。")
-    else:
-        wp_post_id = result.get("id")
-        print(f"[SUCCESS] WordPress 投稿完了: ID={wp_post_id}  URL={result.get('link', '')}")
-
+    # ── トピックを投稿済みにマーク（git push 前に確定させる） ──
     mark_topic_as_posted(topic["id"])
 
+    print(f"[SUCCESS] 記事を保存しました: {title}")
     print(f"[INFO]    メタ説明: {meta_description[:60]}...")
     print(f"[INFO]    アイキャッチ: {img_url[:80]}")
+    print("[INFO]    WordPress 投稿は post_to_wordpress.py で行います（git push 後）")
     print("=" * 60)
     return 0
 
