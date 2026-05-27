@@ -4,6 +4,8 @@ Affiliate article generator with SEO / AIO / LLMO optimisations.
 AIO  = AI Overview (Google のAI概要) 対策
 LLMO = LLM Optimisation (ChatGPT・Perplexity 等に引用されやすい構造)
 SEO  = 従来の検索エンジン最適化
+
+Design: Claude-inspired UI — warm whites, coral/amber accents, clean cards
 """
 from __future__ import annotations
 
@@ -26,6 +28,355 @@ GITHUB_RAW_BASE = (
 
 
 # ---------------------------------------------------------------------------
+# Claude-inspired design system (CSS)
+# ---------------------------------------------------------------------------
+
+ARTICLE_CSS = """\
+<style>
+/* ===== Lightlog Article — Claude Design System ===== */
+
+/* Base */
+.lg {
+  font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic Medium',
+               'YuGothic', 'Meiryo', sans-serif;
+  color: #1c1917;
+  line-height: 1.9;
+  font-size: 16px;
+  background: #fafaf8;
+}
+
+/* Headings */
+.lg h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.45;
+  margin: 8px 0 24px;
+  letter-spacing: -0.3px;
+}
+.lg h2 {
+  font-size: 21px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 52px 0 20px;
+  padding: 12px 18px;
+  background: #fffbf5;
+  border-left: 4px solid #d97706;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 1px 4px rgba(217,119,6,0.08);
+}
+.lg h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 28px 0 12px;
+  padding-left: 14px;
+  border-left: 3px solid #fb923c;
+  line-height: 1.5;
+}
+
+/* Paragraph */
+.lg p {
+  margin-bottom: 1.5em;
+  line-height: 1.9;
+}
+
+/* Lead paragraph */
+.lg .lg-lead {
+  font-size: 15.5px;
+  color: #44403c;
+  line-height: 1.95;
+  padding: 4px 0;
+}
+
+/* Summary "この記事でわかること" */
+.lg .lg-know {
+  background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #f97316;
+  border-radius: 12px;
+  padding: 22px 26px;
+  margin: 32px 0;
+}
+.lg .lg-know-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c2410c;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lg .lg-know-title::before {
+  content: '📋';
+  font-size: 15px;
+}
+.lg .lg-know ul {
+  margin: 0;
+  padding: 0 0 0 20px;
+  list-style: none;
+}
+.lg .lg-know ul li {
+  position: relative;
+  padding: 4px 0 4px 8px;
+  color: #292524;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.lg .lg-know ul li::before {
+  content: '✓';
+  position: absolute;
+  left: -14px;
+  color: #f97316;
+  font-weight: 700;
+}
+
+/* Point box (H2直下サマリー) */
+.lg .summary-box {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 16px 0 24px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #0c4a6e;
+}
+.lg .summary-box strong {
+  color: #0284c7;
+}
+
+/* Affiliate CTA card */
+.lg .lg-cta {
+  background: linear-gradient(135deg, #fff7ed 0%, #fffbf5 60%, #fef3c7 100%);
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin: 40px 0;
+  box-shadow: 0 4px 20px rgba(249,115,22,0.10);
+  text-align: center;
+}
+.lg .lg-cta-badge {
+  display: inline-block;
+  background: #fff4ed;
+  border: 1px solid #fdba74;
+  color: #ea580c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 100px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.lg .lg-cta-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0 0 6px;
+}
+.lg .lg-cta-sub {
+  font-size: 13px;
+  color: #78716c;
+  margin: 0 0 18px;
+}
+.lg .lg-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 36px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none !important;
+  border-radius: 100px;
+  box-shadow: 0 4px 14px rgba(249,115,22,0.35);
+  transition: box-shadow 0.2s, transform 0.2s;
+  letter-spacing: 0.02em;
+}
+.lg .lg-cta-btn:hover {
+  box-shadow: 0 6px 20px rgba(249,115,22,0.45);
+  transform: translateY(-1px);
+}
+.lg .lg-cta-btn::after {
+  content: '→';
+  font-size: 18px;
+}
+.lg .lg-cta-note {
+  font-size: 11px;
+  color: #a8a29e;
+  margin: 12px 0 0;
+}
+
+/* Table */
+.lg table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 28px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  font-size: 14px;
+}
+.lg table thead tr th {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 13px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  border: none;
+}
+.lg table tbody tr:nth-child(odd) td {
+  background: #ffffff;
+}
+.lg table tbody tr:nth-child(even) td {
+  background: #f8fafc;
+}
+.lg table tbody tr:hover td {
+  background: #fff7ed;
+  transition: background 0.15s;
+}
+.lg table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: top;
+  line-height: 1.6;
+}
+
+/* FAQ */
+.lg dl.lg-faq {
+  margin: 16px 0;
+}
+.lg dl.lg-faq dt {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 14px 20px 14px 52px;
+  border-radius: 8px 8px 0 0;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.6;
+  position: relative;
+  margin-top: 16px;
+}
+.lg dl.lg-faq dt::before {
+  content: 'Q';
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f97316;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 24px;
+  text-align: center;
+}
+.lg dl.lg-faq dd {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 16px 20px 16px 52px;
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: #334155;
+  position: relative;
+}
+.lg dl.lg-faq dd::before {
+  content: 'A';
+  position: absolute;
+  left: 16px;
+  top: 18px;
+  background: #0ea5e9;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 24px;
+  text-align: center;
+}
+
+/* List items */
+.lg ul, .lg ol {
+  padding-left: 24px;
+  margin: 12px 0 20px;
+}
+.lg ul li, .lg ol li {
+  margin-bottom: 8px;
+  line-height: 1.8;
+  color: #292524;
+}
+.lg ul li::marker {
+  color: #f97316;
+}
+
+/* Highlight / strong */
+.lg strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* Section separator */
+.lg .lg-section-img {
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 36px 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+}
+.lg .lg-section-img img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 720px;
+}
+
+/* Eyecatch */
+.lg .lg-eyecatch {
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 0 0 36px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.12);
+  line-height: 0;
+}
+.lg .lg-eyecatch img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .lg h1 { font-size: 22px; }
+  .lg h2 { font-size: 18px; padding: 10px 14px; }
+  .lg h3 { font-size: 16px; }
+  .lg .lg-cta { padding: 20px 18px; }
+  .lg .lg-cta-btn { font-size: 14px; padding: 12px 24px; }
+  .lg table { font-size: 12px; }
+  .lg table td, .lg table th { padding: 9px 10px; }
+}
+</style>
+"""
+
+
+# ---------------------------------------------------------------------------
 # Tool data helpers
 # ---------------------------------------------------------------------------
 
@@ -38,7 +389,7 @@ def load_tool_data() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Affiliate CTA button
+# Affiliate CTA button — Claude design
 # ---------------------------------------------------------------------------
 
 def _build_affiliate_html(tool_name: str, tool_data: dict) -> str:
@@ -48,18 +399,17 @@ def _build_affiliate_html(tool_name: str, tool_data: dict) -> str:
     )
     safe = tool_name.replace("'", "\\'")
     return (
-        '<div class="affiliate-cta" style="margin:28px 0;padding:20px 24px;'
-        'background:linear-gradient(135deg,#eef5ff,#eaffef);'
-        'border-radius:10px;border-left:4px solid #0066cc;'
-        'box-shadow:0 2px 10px rgba(0,102,204,0.10);">'
-        f'<p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#1a1a1a;">【PR】{tool_name} を試してみる</p>'
+        '<div class="lg-cta">'
+        '<span class="lg-cta-badge">PR / Sponsored</span>'
+        f'<p class="lg-cta-title">{tool_name} を無料で試してみる</p>'
+        f'<p class="lg-cta-sub">公式サイトで最新プランと料金を確認できます</p>'
         f'<a href="{url}" target="_blank" rel="noopener noreferrer sponsored"'
+        f' class="lg-cta-btn"'
         f' onclick="if(typeof gtag!==\'undefined\'){{gtag(\'event\',\'tool_click\','
-        f'{{\'tool_name\':\'{safe}\',\'event_category\':\'affiliate\'}})}}"'
-        ' style="display:inline-block;padding:12px 28px;background:#0066cc;color:#fff;'
-        'font-weight:700;font-size:15px;text-decoration:none;border-radius:6px;">'
-        f'{tool_name} 公式サイトを確認する &#x2192;</a>'
-        '<p style="margin:8px 0 0;font-size:11px;color:#888;">※ 広告リンクを含みます</p>'
+        f'{{\'tool_name\':\'{safe}\',\'event_category\':\'affiliate\'}})}}">'
+        f'{tool_name} 公式サイトを見る'
+        f'</a>'
+        '<p class="lg-cta-note">※ 本リンクには広告が含まれます</p>'
         '</div>'
     )
 
@@ -146,7 +496,7 @@ def _generate_ai_image(keyword: str, category: str, topic_id: int) -> str:
             f"Professional, clean blog header image for a Japanese business website. "
             f"Topic: {keyword}. Category: {category}. "
             "Modern flat illustration or infographic style. No text. "
-            "Soft blue and white color palette. 16:9 ratio composition."
+            "Warm amber and white color palette. 16:9 ratio composition."
         )
         print(f"[INFO] AI画像を生成中: {keyword}")
 
@@ -184,10 +534,8 @@ def _generate_ai_image(keyword: str, category: str, topic_id: int) -> str:
 def _eyecatch_html(keyword: str, img_url: str) -> str:
     alt = keyword.replace('"', "&quot;")
     return (
-        f'<figure class="wp-block-image size-large" style="margin:0 0 32px;">'
-        f'<img src="{img_url}" alt="{alt}" loading="eager"'
-        f' style="width:100%;height:auto;border-radius:10px;'
-        f'box-shadow:0 4px 16px rgba(0,0,0,0.12);">'
+        f'<figure class="lg-eyecatch">'
+        f'<img src="{img_url}" alt="{alt}" loading="eager" width="1200" height="675">'
         f'</figure>\n'
     )
 
@@ -198,14 +546,12 @@ def _section_image_html(keyword: str, topic_id: int) -> str:
     topic_id + 1000 を sig に使うことでアイキャッチ（sig=topic_id）と別の画像になる。
     """
     alt = keyword.replace('"', "&quot;") + " 活用イメージ"
-    # ビジネス/チームワークをテーマにした別の写真ベース（アイキャッチと被らない）
     base = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop"
     url  = f"{base}&sig={topic_id + 1000}"
     return (
-        f'<figure class="wp-block-image" style="margin:32px 0;">'
-        f'<img src="{url}" alt="{alt}" loading="lazy"'
-        f' style="width:100%;max-width:720px;height:auto;border-radius:8px;">'
-        f'</figure>\n'
+        f'<div class="lg-section-img">'
+        f'<img src="{url}" alt="{alt}" loading="lazy" width="800" height="450">'
+        f'</div>\n'
     )
 
 
@@ -301,12 +647,23 @@ def _extract_faq_items(html: str) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# System prompts (SEO / AIO / LLMO 対応)
+# System prompts (SEO / AIO / LLMO 対応 + Claude design)
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """\
 あなたは日本のSEO・AIO・LLMOに精通したアフィリエイトライターです。
 下記のルールに従って記事を作成してください。
+
+【デザインシステム（重要）】
+- 記事全体を <div class="lg"> で囲む
+- h1〜h3 タグにはクラスや style を追加しない（CSSが自動で適用される）
+- 「この記事でわかること」ボックスは <div class="lg-know"> を使う
+- H2直下の要点ボックスは <div class="summary-box"> を使う（style不要）
+- FAQ は <dl class="lg-faq"> 形式で書く
+- テーブルは class="lg-table" を付ける
+- CTAプレースホルダー <!-- AFFILIATE_LINK: ツール名 --> はそのまま記述
+- <p> タグに style は不要（CSSで制御済み）
+- inline style は原則使わない（デザインシステムのCSSに任せる）
 
 【SEO対策】
 - メインキーワードはタイトル・H1・最初のpタグ・まとめに必ず含める
@@ -314,9 +671,9 @@ SYSTEM_PROMPT = """\
 - H2 → H3 の階層を正しく守る
 
 【AIO対策（Google AI Overview / AI概要）】
-- 各H2直下に40〜60字の「要点ボックス」 (<div class="summary-box">) を置く
+- 各H2直下に40〜60字の「要点ボックス」 <div class="summary-box"> を置く
 - 冒頭の「この記事でわかること」で記事の結論を先出しする
-- 「よくある質問」セクションは <dl><dt><dd> 形式で 4〜5 Q&A を書く
+- 「よくある質問」セクションは <dl class="lg-faq"><dt><dd> 形式で 4〜5 Q&A を書く
 - 数字・固有名詞・料金・日付を積極的に使い、AI が引用しやすい事実ベースの文章にする
 
 【LLMO対策（ChatGPT・Perplexity 等への最適化）】
@@ -326,13 +683,11 @@ SYSTEM_PROMPT = """\
 - 「〜によると」「〜のデータでは」など引用フレーズを使う（事実ベース）
 
 【その他ルール】
-- HTML形式（<h1><h2><h3><p><ul><li><table><dl><dt><dd>）
 - 記事中の年号は2026年（2025年最新は書かない）
-- <!-- AFFILIATE_LINK: ツール名 --> は記事全体で厳密に2箇所のみ（1つ目は導入文の直後、2つ目はまとめセクションの末尾）
-- 各 H2 セクションには必ず上下に余白を設ける: <h2 style="margin-top:48px;padding-top:8px;border-top:2px solid #e8e8e8;">
-- 各段落 <p> には style="margin-bottom:1.4em;line-height:1.85;" を付ける
+- <!-- AFFILIATE_LINK: ツール名 --> は記事全体で厳密に2箇所のみ
+  （1つ目は導入文の直後、2つ目はまとめセクションの末尾）
 - <html><body><head>タグは不要、記事本文のみ
-- コードブロック（```）は使わない\
+- コードブロック（\`\`\`）は使わない\
 """
 
 USER_PROMPT_TEMPLATE = """\
@@ -344,33 +699,54 @@ USER_PROMPT_TEMPLATE = """\
 紹介ツール: {tools}
 メタ説明（140字以内）: ← 記事の冒頭コメントに <!-- META_DESCRIPTION: ... --> として埋め込む
 
-【必須構成】
-1. <!-- META_DESCRIPTION: 140字以内のメタ説明 -->（コメントとして冒頭）
-2. <h1> タイトル
-3. <div class="summary-box"> この記事でわかること（ul 3〜5項目）</div>
-4. 導入文 350字以上（読者の悩みを具体的に提示）
-5. H2 × 4〜5個（各H2直下に40〜60字の要点ボックス）※CTAは導入文直後と まとめ末尾の2箇所のみ
-6. 料金・機能比較テーブル（thead/tbody使用、○△×や数値で明記）
-7. <h2>よくある質問</h2>（<dl><dt><dd> 形式で 4〜5 Q&A）
-8. <h2>まとめ</h2>（結論と強いCTAを含む）
-9. 合計 2,200〜2,800字（日本語）
+【必須構成】（※全体を <div class="lg"> で囲むこと）
 
-【テーブルスタイル例】
-<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+1. <!-- META_DESCRIPTION: 140字以内のメタ説明 -->（コメントとして冒頭）
+2. <div class="lg"> ← 開始タグ
+3. <h1> タイトル
+4. 「この記事でわかること」ボックス（下記テンプレート参照）
+5. 導入文 350字以上（読者の悩みを具体的に提示）
+6. CTAプレースホルダー <!-- AFFILIATE_LINK: ツール名 -->
+7. H2 × 4〜5個（各H2直下に要点ボックス）
+8. 料金・機能比較テーブル（class="lg-table" を付ける）
+9. <h2>よくある質問</h2>（<dl class="lg-faq"> 形式で 4〜5 Q&A）
+10. <h2>まとめ</h2>（結論と強いCTAを含む）
+11. CTAプレースホルダー <!-- AFFILIATE_LINK: ツール名 -->
+12. </div> ← 終了タグ
+13. 合計 2,200〜2,800字（日本語）
+
+【この記事でわかること ボックス テンプレート】
+<div class="lg-know">
+  <p class="lg-know-title">この記事でわかること</p>
+  <ul>
+    <li>ポイント1</li>
+    <li>ポイント2</li>
+    <li>ポイント3</li>
+  </ul>
+</div>
+
+【要点ボックス テンプレート（H2直下）】
+<div class="summary-box"><strong>ポイント：</strong>テキスト（40〜60字）</div>
+
+【比較テーブル テンプレート】
+<table class="lg-table">
   <thead><tr>
-    <th style="background:#1a5cad;color:#fff;padding:10px;border:1px solid #ddd;">項目</th>
-    ...
+    <th>項目</th>
+    <th>プランA</th>
+    <th>プランB</th>
   </tr></thead>
-  <tbody><tr>
-    <td style="padding:10px;border:1px solid #ddd;">内容</td>
-    ...
-  </tr></tbody>
+  <tbody>
+    <tr><td>料金</td><td>無料</td><td>月額2,980円</td></tr>
+  </tbody>
 </table>
 
-【要点ボックスのスタイル例】
-<div class="summary-box" style="background:#f0f7ff;border-left:3px solid #1a5cad;padding:12px 16px;margin:12px 0;border-radius:4px;font-size:14px;">
-  <strong>ポイント：</strong>テキスト
-</div>\
+【よくある質問 テンプレート】
+<dl class="lg-faq">
+  <dt>質問1</dt>
+  <dd>回答1</dd>
+  <dt>質問2</dt>
+  <dd>回答2</dd>
+</dl>\
 """
 
 
@@ -410,17 +786,18 @@ def mark_topic_as_posted(topic_id: int) -> None:
 def generate_article(topic: dict) -> tuple[str, str, str, str]:
     """
     Returns (title, html_content, meta_description, img_url) with:
-    - SEO / AIO / LLMO optimised HTML
+    - Claude-design inspired HTML (warm whites × coral accent)
+    - SEO / AIO / LLMO optimised structure
     - AI-generated or Unsplash eyecatch image
     - JSON-LD Article + FAQ schema
     - Affiliate CTA buttons
     """
     from config import ANTHROPIC_API_KEY
 
-    title:          str       = topic["title"]
-    keyword:        str       = topic.get("keyword", title)
-    category:       str       = topic.get("category", "")
-    topic_id:       int       = topic.get("id", 0)
+    title:           str       = topic["title"]
+    keyword:         str       = topic.get("keyword", title)
+    category:        str       = topic.get("category", "")
+    topic_id:        int       = topic.get("id", 0)
     affiliate_tools: list[str] = topic.get("affiliate_tools", [])
     tools_str = "、".join(affiliate_tools) if affiliate_tools else "各ツール"
 
@@ -470,8 +847,8 @@ def generate_article(topic: dict) -> tuple[str, str, str, str]:
     slug = re.sub(r'[^\w\-]', '-', keyword.lower())
     article_schema = _build_article_schema(title, slug, meta_description)
 
-    # 9) アイキャッチ画像を冒頭に追加し、スキーマを末尾に追加
+    # 9) CSS + アイキャッチ画像を冒頭に追加し、スキーマを末尾に追加
     eyecatch = _eyecatch_html(keyword, img_url)
-    content = eyecatch + content + "\n" + article_schema + faq_schema
+    content = ARTICLE_CSS + eyecatch + content + "\n" + article_schema + faq_schema
 
     return title, content, meta_description, img_url
