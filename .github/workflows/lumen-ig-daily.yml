@@ -1,0 +1,83 @@
+name: Lumen IG Daily Post
+
+# ─────────────────────────────────────────────
+# 毎朝 JST 08:00 (= UTC 23:00 前日) に自動実行
+# workflow_dispatch で手動実行も可能
+# ─────────────────────────────────────────────
+on:
+  schedule:
+    - cron: '0 23 * * *'   # JST 08:00
+  workflow_dispatch:        # 手動実行用
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write       # ログファイルをコミットするために必要
+
+    steps:
+      # ── 1. リポジトリをチェックアウト ─────────────────────
+      - uses: actions/checkout@v4
+
+      # ── 2. Python セットアップ ────────────────────────────
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ── 3. Python 依存パッケージインストール ───────────────
+      - name: Install Python dependencies
+        run: |
+          pip install --quiet \
+            cloudinary>=1.36.0 \
+            Pillow>=10.0.0 \
+            requests>=2.31.0 \
+            slack_sdk>=3.27.0
+
+      # ── 4. Node.js セットアップ ───────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── 5. Claude Code CLI インストール ───────────────────
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      # ── 6. ディレクトリ準備 ───────────────────────────────
+      - name: Prepare directories
+        run: |
+          mkdir -p lumen-ig/images/queue
+          mkdir -p lumen-ig/logs
+          echo "LUMEN=${{ github.workspace }}/lumen-ig" >> $GITHUB_ENV
+
+      # ── 7. claude -p で全工程を実行 ───────────────────────
+      - name: Run Lumen IG Daily Post via Claude
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Instagram Graph API
+          IG_USER_ID:              ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN:         ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_GRAPH_BASE:           https://graph.instagram.com
+          # Cloudinary
+          CLOUDINARY_CLOUD_NAME:   ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY:      ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET:   ${{ secrets.CLOUDINARY_API_SECRET }}
+          # Hugging Face (画像生成)
+          HF_TOKEN:                ${{ secrets.HF_TOKEN }}
+          # Slack 通知
+          SLACK_BOT_TOKEN:         ${{ secrets.SLACK_BOT_TOKEN }}
+          # LUMEN ディレクトリ（前ステップで設定済み）
+          LUMEN:                   ${{ github.workspace }}/lumen-ig
+        run: |
+          claude --dangerously-skip-permissions -p "$(cat lumen-ig/scripts/ig_post_prompt.md)"
+
+      # ── 8. ログとキュー変更をコミット ─────────────────────
+      - name: Commit logs
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions [Lumen IG]"
+          git add lumen-ig/logs/daily_post.jsonl 2>/dev/null || true
+          git add lumen-ig/images/queue/         2>/dev/null || true
+          git diff --staged --quiet || \
+            git commit -m "Lumen IG post log $(date +'%Y-%m-%d') [skip ci]"
+          git push origin HEAD || true
