@@ -7,6 +7,10 @@ on:
         description: 'list / deactivate'
         required: true
         default: 'list'
+      wp_app_password:
+        description: 'WordPress Application Password (Lightlogユーザー)'
+        required: true
+        default: ''
       plugin_slug:
         description: 'deactivate時: plugin/plugin.php 形式で指定'
         required: false
@@ -23,7 +27,7 @@ jobs:
 
           WP_URL      = "${{ secrets.WP_URL }}"
           WP_USER     = "Lightlog"
-          WP_PASS     = "${{ secrets.WP_APP_PASSWORD }}"
+          WP_PASS     = "${{ github.event.inputs.wp_app_password }}"
           ACTION      = "${{ github.event.inputs.action }}"
           PLUGIN_SLUG = "${{ github.event.inputs.plugin_slug }}"
 
