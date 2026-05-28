@@ -8,7 +8,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from article_generator import generate_article, load_next_topic, mark_topic_as_posted
 from config import validate_affiliate_config
-from wordpress_poster import post_article
 
 
 def main() -> int:
@@ -33,34 +32,32 @@ def main() -> int:
         print(f"[ERROR] 記事生成に失敗しました: {e}")
         return 1
 
-    # WordPress へ直接投稿（XML-RPC）
-    result = post_article(title, content)
-    if "error" in result:
-        print(f"[ERROR] WordPress投稿に失敗しました: {result['error']}")
-        return 1
-    wp_post_id = result.get("id")
-    print(f"[SUCCESS] WordPress投稿完了: ID={wp_post_id}  URL={result.get('link')}")
-
+    # ── latest.json に保存 ──
     output_path = Path(__file__).parent.parent / "articles" / "latest.json"
     output_path.parent.mkdir(exist_ok=True)
     output_path.write_text(
         json.dumps(
             {
-                "title":               title,
-                "content":             content,
-                "meta_description":    meta_description,
-                "featured_image_url":  img_url,
-                "wp_post_id":          wp_post_id,
+                "title":              title,
+                "content":            content,
+                "meta_description":   meta_description,
+                "featured_image_url": img_url,
+                # wp_post_id は WordPress 投稿ステップで設定される（post_to_wordpress.py）
+                "wp_post_id":         None,
             },
             ensure_ascii=False,
             indent=2,
         ),
         encoding="utf-8",
     )
+
+    # ── トピックを投稿済みにマーク（git push 前に確定させる） ──
     mark_topic_as_posted(topic["id"])
 
+    print(f"[SUCCESS] 記事を保存しました: {title}")
     print(f"[INFO]    メタ説明: {meta_description[:60]}...")
     print(f"[INFO]    アイキャッチ: {img_url[:80]}")
+    print("[INFO]    WordPress 投稿は post_to_wordpress.py で行います（git push 後）")
     print("=" * 60)
     return 0
 

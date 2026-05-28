@@ -1,198 +1,231 @@
 {
   "freee": {
     "official_url": "https://www.freee.co.jp",
+    "logo_url": "https://logo.clearbit.com/freee.co.jp",
     "affiliate_unit_price": 8000,
     "cvr_estimate": 0.025,
     "category": "会計・経費管理"
   },
   "マネーフォワードクラウド": {
     "official_url": "https://biz.moneyforward.com",
+    "logo_url": "https://logo.clearbit.com/moneyforward.com",
     "affiliate_unit_price": 12000,
     "cvr_estimate": 0.025,
     "category": "会計・経費管理"
   },
   "ChatGPT Plus": {
     "official_url": "https://chat.openai.com",
+    "logo_url": "https://logo.clearbit.com/openai.com",
     "affiliate_unit_price": 5000,
     "cvr_estimate": 0.03,
     "category": "AI・生産性"
   },
   "Canva Pro": {
     "official_url": "https://www.canva.com/ja_jp/canva-pro/",
+    "logo_url": "https://logo.clearbit.com/canva.com",
     "affiliate_unit_price": 3000,
     "cvr_estimate": 0.03,
     "category": "デザイン・クリエイティブ"
   },
   "Notion": {
     "official_url": "https://www.notion.so/ja-jp",
+    "logo_url": "https://logo.clearbit.com/notion.so",
     "affiliate_unit_price": 5000,
     "cvr_estimate": 0.02,
     "category": "プロジェクト管理・メモ"
   },
   "クラウドサイン": {
     "official_url": "https://www.cloudsign.jp",
+    "logo_url": "https://logo.clearbit.com/cloudsign.jp",
     "affiliate_unit_price": 10000,
     "cvr_estimate": 0.02,
     "category": "電子契約・法務"
   },
   "Figma": {
     "official_url": "https://www.figma.com",
+    "logo_url": "https://logo.clearbit.com/figma.com",
     "affiliate_unit_price": 8000,
     "cvr_estimate": 0.02,
     "category": "デザイン・クリエイティブ"
   },
   "Backlog": {
     "official_url": "https://backlog.com/ja/",
+    "logo_url": "https://logo.clearbit.com/backlog.com",
     "affiliate_unit_price": 7000,
     "cvr_estimate": 0.02,
     "category": "プロジェクト管理"
   },
   "Asana": {
     "official_url": "https://asana.com/ja",
+    "logo_url": "https://logo.clearbit.com/asana.com",
     "affiliate_unit_price": 8000,
     "cvr_estimate": 0.02,
     "category": "プロジェクト管理"
   },
   "Slack": {
     "official_url": "https://slack.com/intl/ja-jp/",
+    "logo_url": "https://logo.clearbit.com/slack.com",
     "affiliate_unit_price": 5000,
     "cvr_estimate": 0.015,
     "category": "コミュニケーション"
   },
   "Zoom": {
     "official_url": "https://zoom.us",
+    "logo_url": "https://logo.clearbit.com/zoom.us",
     "affiliate_unit_price": 4000,
     "cvr_estimate": 0.015,
     "category": "Web会議・コミュニケーション"
   },
   "Zoom Pro": {
     "official_url": "https://zoom.us/pricing",
+    "logo_url": "https://logo.clearbit.com/zoom.us",
     "affiliate_unit_price": 4000,
     "cvr_estimate": 0.015,
     "category": "Web会議・コミュニケーション"
   },
   "Adobe Express": {
     "official_url": "https://www.adobe.com/jp/express/",
+    "logo_url": "https://logo.clearbit.com/adobe.com",
     "affiliate_unit_price": 6000,
     "cvr_estimate": 0.02,
     "category": "デザイン・クリエイティブ"
   },
   "kintone": {
     "official_url": "https://kintone.cybozu.co.jp",
+    "logo_url": "https://logo.clearbit.com/cybozu.co.jp",
     "affiliate_unit_price": 15000,
     "cvr_estimate": 0.02,
     "category": "業務改善・ローコード"
   },
   "楽楽精算": {
     "official_url": "https://www.rakurakuseisan.jp",
+    "logo_url": "https://logo.clearbit.com/rakurakuseisan.jp",
     "affiliate_unit_price": 10000,
     "cvr_estimate": 0.02,
     "category": "会計・経費管理"
   },
   "Chatwork": {
     "official_url": "https://go.chatwork.com/ja/",
+    "logo_url": "https://logo.clearbit.com/chatwork.com",
     "affiliate_unit_price": 3000,
     "cvr_estimate": 0.015,
     "category": "コミュニケーション"
   },
   "Monday.com": {
     "official_url": "https://monday.com/lang/ja/",
+    "logo_url": "https://logo.clearbit.com/monday.com",
     "affiliate_unit_price": 10000,
     "cvr_estimate": 0.02,
     "category": "プロジェクト管理"
   },
   "HubSpot": {
     "official_url": "https://www.hubspot.jp",
+    "logo_url": "https://logo.clearbit.com/hubspot.com",
     "affiliate_unit_price": 30000,
     "cvr_estimate": 0.015,
     "category": "CRM・マーケティング"
   },
   "Zapier": {
     "official_url": "https://zapier.com",
+    "logo_url": "https://logo.clearbit.com/zapier.com",
     "affiliate_unit_price": 15000,
     "cvr_estimate": 0.015,
     "category": "業務自動化"
   },
   "Make": {
     "official_url": "https://www.make.com/en",
+    "logo_url": "https://logo.clearbit.com/make.com",
     "affiliate_unit_price": 10000,
     "cvr_estimate": 0.015,
     "category": "業務自動化"
   },
   "Loom": {
     "official_url": "https://www.loom.com",
+    "logo_url": "https://logo.clearbit.com/loom.com",
     "affiliate_unit_price": 5000,
     "cvr_estimate": 0.015,
     "category": "コミュニケーション・動画"
   },
   "リクルートエージェント": {
     "official_url": "https://www.r-agent.com",
+    "logo_url": "https://logo.clearbit.com/r-agent.com",
     "affiliate_unit_price": 15000,
     "cvr_estimate": 0.015,
     "category": "転職・キャリア"
   },
   "doda": {
     "official_url": "https://doda.jp",
+    "logo_url": "https://logo.clearbit.com/doda.jp",
     "affiliate_unit_price": 12000,
     "cvr_estimate": 0.015,
     "category": "転職・キャリア"
   },
   "マイナビ転職": {
     "official_url": "https://tenshoku.mynavi.jp",
+    "logo_url": "https://logo.clearbit.com/mynavi.jp",
     "affiliate_unit_price": 10000,
     "cvr_estimate": 0.015,
     "category": "転職・キャリア"
   },
   "ビズリーチ": {
     "official_url": "https://www.bizreach.jp",
+    "logo_url": "https://logo.clearbit.com/bizreach.jp",
     "affiliate_unit_price": 20000,
     "cvr_estimate": 0.01,
     "category": "転職・キャリア"
   },
   "リクナビNEXT": {
     "official_url": "https://next.rikunabi.com",
+    "logo_url": "https://logo.clearbit.com/rikunabi.com",
     "affiliate_unit_price": 8000,
     "cvr_estimate": 0.02,
     "category": "転職・キャリア"
   },
   "タイミー": {
     "official_url": "https://timee.co.jp",
+    "logo_url": "https://logo.clearbit.com/timee.co.jp",
     "affiliate_unit_price": 1500,
     "cvr_estimate": 0.03,
     "category": "副業・スキマバイト"
   },
   "シェアフル": {
     "official_url": "https://sharefull.com",
+    "logo_url": "https://logo.clearbit.com/sharefull.com",
     "affiliate_unit_price": 1000,
     "cvr_estimate": 0.03,
     "category": "副業・スキマバイト"
   },
   "マッハバイト": {
     "official_url": "https://townwork.net",
+    "logo_url": "https://logo.clearbit.com/townwork.net",
     "affiliate_unit_price": 800,
     "cvr_estimate": 0.035,
     "category": "副業・スキマバイト"
   },
   "バイトル": {
     "official_url": "https://www.baitoru.com",
+    "logo_url": "https://logo.clearbit.com/baitoru.com",
     "affiliate_unit_price": 1000,
     "cvr_estimate": 0.03,
     "category": "副業・スキマバイト"
   },
   "Xserver": {
     "official_url": "https://www.xserver.ne.jp",
+    "logo_url": "https://logo.clearbit.com/xserver.ne.jp",
     "affiliate_unit_price": 12000,
     "cvr_estimate": 0.02,
     "category": "レンタルサーバー"
   },
   "ConoHa WING": {
     "official_url": "https://www.conoha.jp/wing",
+    "logo_url": "https://logo.clearbit.com/conoha.jp",
     "affiliate_unit_price": 10000,
     "cvr_estimate": 0.02,
     "category": "レンタルサーバー"
   },
   "さくらのレンタルサーバ": {
     "official_url": "https://rs.sakura.ad.jp",
+    "logo_url": "https://logo.clearbit.com/sakura.ne.jp",
     "affiliate_unit_price": 5000,
     "cvr_estimate": 0.02,
     "category": "レンタルサーバー"

@@ -8,9 +8,17 @@ on:
     branches: [main]
     paths: ['.trigger']
 
+# 同時実行を防止（前のジョブが終わる前に次が起動しない）
+# cancel-in-progress: false にすることで、後続ジョブは「待機」して実行される
+# （同じ記事を2度投稿しない重要な設定）
+concurrency:
+  group: affiliate-auto-post
+  cancel-in-progress: false
+
 jobs:
   post:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # 15分でタイムアウト（通常2〜5分で完了）
     permissions:
       contents: write
 
@@ -47,7 +55,10 @@ jobs:
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           WP_URL:            ${{ secrets.WP_URL }}
 
-      - name: Generate article and post to WordPress
+      # ── STEP 1: 記事生成 + posted:true をローカルに書き込む ──
+      # WordPress への投稿はここでは行わない。
+      # git push が失敗した場合に同じ記事が再投稿されるのを防ぐため。
+      - name: Generate article and save to repo
         run: python automation/run_affiliate.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -55,6 +66,9 @@ jobs:
           WP_URL:            ${{ secrets.WP_URL }}
           WP_APP_PASSWORD:   ${{ secrets.WP_APP_PASSWORD }}
 
+      # ── STEP 2: git push（posted:true の確定） ──
+      # このステップが成功して初めて「投稿済み」として扱われる。
+      # 失敗した場合は次回実行で再生成されるが、WordPress にはまだ投稿されていないため重複しない。
       - name: Commit article, images and updated topics
         run: |
           git config user.email "action@github.com"
@@ -65,3 +79,15 @@ jobs:
           git diff --staged --quiet || git commit -m "Add new article [skip ci]"
           git push
 
+      # ── STEP 3: WordPress への投稿（git push 成功後のみ実行） ──
+      # 重複防止の二重構造:
+      #   1. latest.json の wp_post_id が設定済みならスキップ
+      #   2. WordPress 側で同タイトル記事が存在すればスキップ
+      # git push が失敗した場合、このステップは実行されない（if: success() のデフォルト動作）。
+      - name: Post to WordPress
+        run: python automation/post_to_wordpress.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WP_URL:            ${{ secrets.WP_URL }}
+          WP_USERNAME:       ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD:   ${{ secrets.WP_APP_PASSWORD }}
