@@ -1,0 +1,55 @@
+name: WP Plugin Manager (one-shot)
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'list / deactivate'
+        required: true
+        default: 'list'
+      plugin_slug:
+        description: 'deactivate時: plugin/plugin.php 形式で指定'
+        required: false
+        default: ''
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manage plugins via WP REST API
+        run: |
+          python3 - <<'PYEOF'
+          import requests, base64, json, sys
+
+          WP_URL      = "${{ secrets.WP_URL }}"
+          WP_USER     = "Lightlog"
+          WP_PASS     = "${{ secrets.WP_APP_PASSWORD }}"
+          ACTION      = "${{ github.event.inputs.action }}"
+          PLUGIN_SLUG = "${{ github.event.inputs.plugin_slug }}"
+
+          token   = base64.b64encode(f"{WP_USER}:{WP_PASS}".encode()).decode()
+          headers = {"Authorization": f"Basic {token}", "Content-Type": "application/json"}
+          base    = WP_URL.rstrip("/") + "/wp-json/wp/v2/plugins"
+
+          if ACTION == "list":
+              r = requests.get(base, headers=headers)
+              print(f"Status: {r.status_code}")
+              if r.status_code == 200:
+                  for p in r.json():
+                      print(f"[{p.get('status','?'):8s}] {p.get('name','?'):40s} | {p.get('plugin','?')}")
+              else:
+                  print(r.text[:1000])
+
+          elif ACTION == "deactivate":
+              if not PLUGIN_SLUG:
+                  print("ERROR: plugin_slug が未指定です")
+                  sys.exit(1)
+              slug = PLUGIN_SLUG.split("/")[0]
+              r = requests.post(
+                  f"{base}/{slug}",
+                  headers=headers,
+                  data=json.dumps({"status": "inactive"})
+              )
+              print(f"Status: {r.status_code}")
+              print(r.text[:500])
+          PYEOF
