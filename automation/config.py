@@ -18,6 +18,8 @@ def validate_affiliate_config() -> bool:
         missing.append("ANTHROPIC_API_KEY")
     if not WP_URL:
         missing.append("WP_URL")
+    if not WP_APP_PASSWORD:
+        missing.append("WP_APP_PASSWORD")
     if missing:
         print(f"[ERROR] 必須環境変数が未設定です: {', '.join(missing)}")
         return False
