@@ -54,9 +54,24 @@ jobs:
             ARGS="$ARGS --id ${{ steps.params.outputs.topic_id }}"
           fi
           echo "[RUN] python automation/backfill_articles.py $ARGS"
-          python automation/backfill_articles.py $ARGS
+          python automation/backfill_articles.py $ARGS 2>&1 | tee /tmp/backfill.log
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+        id: run
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           WP_URL:            ${{ secrets.WP_URL }}
           WP_USERNAME:       ${{ secrets.WP_USERNAME }}
           WP_APP_PASSWORD:   ${{ secrets.WP_APP_PASSWORD }}
+
+      - name: Commit result log
+        if: always()
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions"
+          TIMESTAMP=$(date -u +"%Y%m%d_%H%M%S")
+          LOG_PATH="articles/backfill/result_${TIMESTAMP}.log"
+          mkdir -p articles/backfill
+          cp /tmp/backfill.log "$LOG_PATH" 2>/dev/null || echo "(no log)" > "$LOG_PATH"
+          git add "$LOG_PATH"
+          git diff --staged --quiet || git commit -m "backfill: result log ${TIMESTAMP} [skip ci]"
+          git push
