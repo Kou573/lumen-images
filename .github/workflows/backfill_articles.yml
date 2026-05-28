@@ -11,6 +11,9 @@ on:
         description: 'dry-run: WPへの書き込みなし（true/false）'
         required: false
         default: 'false'
+  push:
+    branches: [main]
+    paths: ['.backfill_trigger']
 
 jobs:
   backfill:
@@ -27,15 +30,30 @@ jobs:
       - name: Install dependencies
         run: pip install "anthropic>=0.40.0" requests python-dotenv
 
+      - name: Resolve parameters
+        id: params
+        run: |
+          if [ -f .backfill_trigger ]; then
+            DRY_RUN=$(python3 -c "import json; d=json.load(open('.backfill_trigger')); print(str(d.get('dry_run', False)).lower())")
+            TOPIC_ID=$(python3 -c "import json; d=json.load(open('.backfill_trigger')); tid=d.get('topic_id'); print(tid if tid is not None else '')")
+          else
+            DRY_RUN="${{ github.event.inputs.dry_run }}"
+            TOPIC_ID="${{ github.event.inputs.topic_id }}"
+          fi
+          echo "dry_run=$DRY_RUN"   >> $GITHUB_OUTPUT
+          echo "topic_id=$TOPIC_ID" >> $GITHUB_OUTPUT
+          echo "[INFO] dry_run=$DRY_RUN  topic_id=${TOPIC_ID:-全件}"
+
       - name: Run backfill
         run: |
           ARGS=""
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+          if [ "${{ steps.params.outputs.dry_run }}" = "true" ]; then
             ARGS="$ARGS --dry-run"
           fi
-          if [ -n "${{ github.event.inputs.topic_id }}" ]; then
-            ARGS="$ARGS --id ${{ github.event.inputs.topic_id }}"
+          if [ -n "${{ steps.params.outputs.topic_id }}" ]; then
+            ARGS="$ARGS --id ${{ steps.params.outputs.topic_id }}"
           fi
+          echo "[RUN] python automation/backfill_articles.py $ARGS"
           python automation/backfill_articles.py $ARGS
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
