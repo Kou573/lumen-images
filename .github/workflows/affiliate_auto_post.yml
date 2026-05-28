@@ -47,12 +47,13 @@ jobs:
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           WP_URL:            ${{ secrets.WP_URL }}
 
-      - name: Generate article and save to repo
+      - name: Generate article and post to WordPress
         run: python automation/run_affiliate.py
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           WP_URL:            ${{ secrets.WP_URL }}
+          WP_APP_PASSWORD:   ${{ secrets.WP_APP_PASSWORD }}
 
       - name: Commit article, images and updated topics
         run: |
@@ -64,8 +65,3 @@ jobs:
           git diff --staged --quiet || git commit -m "Add new article [skip ci]"
           git push
 
-      - name: Trigger WordPress WP-Cron
-        run: |
-          WP_URL="${{ secrets.WP_URL }}"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${WP_URL}/wp-cron.php?doing_wp_cron")
-          echo "WP-Cron status: ${STATUS}"
