@@ -31,4 +31,13 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        run: claude -p "$(cat ai-news/prompt.txt)" --allowedTools "WebSearch,WebFetch" | python ai-news/post_to_slack.py
+        run: |
+          set -e
+          # Run from /tmp to prevent CLAUDE.md (COO persona) from being auto-discovered,
+          # which would cause Claude to try using the Agent tool unavailable in CI.
+          cd /tmp
+          claude -p "$(cat $GITHUB_WORKSPACE/ai-news/prompt.txt)" \
+            --allowedTools "WebSearch,WebFetch" \
+            --output-format text \
+            > /tmp/ai_news.txt
+          python $GITHUB_WORKSPACE/ai-news/post_to_slack.py < /tmp/ai_news.txt
