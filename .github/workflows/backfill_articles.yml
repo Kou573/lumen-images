@@ -1,0 +1,44 @@
+name: Backfill Articles (one-shot)
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic_id:
+        description: '特定トピック ID のみ処理（空欄で全件）'
+        required: false
+        default: ''
+      dry_run:
+        description: 'dry-run: WPへの書き込みなし（true/false）'
+        required: false
+        default: 'false'
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install "anthropic>=0.40.0" requests python-dotenv
+
+      - name: Run backfill
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ -n "${{ github.event.inputs.topic_id }}" ]; then
+            ARGS="$ARGS --id ${{ github.event.inputs.topic_id }}"
+          fi
+          python automation/backfill_articles.py $ARGS
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WP_URL:            ${{ secrets.WP_URL }}
+          WP_USERNAME:       ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD:   ${{ secrets.WP_APP_PASSWORD }}

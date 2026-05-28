@@ -173,3 +173,58 @@ def post_article(
     except Exception as e:
         logger.error("XML-RPC エラー: %s", e)
         return {"error": str(e)}
+
+
+# ---------------------------------------------------------------------------
+# Update existing post
+# ---------------------------------------------------------------------------
+
+def update_article(
+    post_id: str,
+    title: str,
+    content: str,
+    featured_image_url: str | None = None,
+    meta_description: str | None = None,
+) -> dict:
+    """
+    既存の WordPress 記事を wp.editPost で上書き更新する。
+    アイキャッチ画像も再アップロードして差し替える。
+    """
+    from config import WP_URL, WP_USERNAME, WP_APP_PASSWORD
+
+    if not all([WP_URL, WP_USERNAME, WP_APP_PASSWORD]):
+        msg = "WP_URL / WP_USERNAME / WP_APP_PASSWORD が未設定です。"
+        logger.error(msg)
+        return {"error": msg}
+
+    endpoint = f"{WP_URL.rstrip('/')}/xmlrpc.php"
+    logger.info("WordPress 記事更新開始: post_id=%s  title=%s", post_id, title)
+
+    try:
+        server = xmlrpc.client.ServerProxy(endpoint)
+
+        post_data: dict = {
+            "post_content": content,
+            "post_excerpt": meta_description or "",
+        }
+
+        if featured_image_url:
+            logger.info("アイキャッチ画像をアップロード中...")
+            safe_name = re.sub(r"[^\w\-]", "_", title[:40]) + "_updated.jpg"
+            attachment_id = upload_media_from_url(
+                server, WP_USERNAME, WP_APP_PASSWORD,
+                featured_image_url, filename=safe_name,
+            )
+            if attachment_id:
+                post_data["post_thumbnail"] = attachment_id
+                logger.info("アイキャッチ更新完了: attachment_id=%s", attachment_id)
+
+        success = server.wp.editPost(1, WP_USERNAME, WP_APP_PASSWORD, post_id, post_data)
+        if success:
+            logger.info("記事更新成功: post_id=%s", post_id)
+            return {"id": post_id, "link": f"{WP_URL.rstrip('/')}/?p={post_id}"}
+        return {"error": f"wp.editPost returned False for post_id={post_id}"}
+
+    except Exception as e:
+        logger.error("XML-RPC エラー: %s", e)
+        return {"error": str(e)}
