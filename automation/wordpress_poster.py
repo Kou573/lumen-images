@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import logging
 import re
 import xmlrpc.client
@@ -53,17 +54,63 @@ def _download_image(img_url: str) -> tuple[bytes, str]:
     return data, mime
 
 
+def upload_media_rest_api(
+    wp_url: str,
+    username: str,
+    password: str,
+    img_url: str,
+    filename: str = "featured.jpg",
+) -> int | None:
+    """WordPress REST API 経由で画像をアップロードし attachment ID を返す。"""
+    try:
+        import requests as _requests
+        image_data, mime = _download_image(img_url)
+        cred = base64.b64encode(f"{username}:{password}".encode()).decode()
+        resp = _requests.post(
+            f"{wp_url.rstrip('/')}/wp-json/wp/v2/media",
+            headers={
+                "Authorization": f"Basic {cred}",
+                "Content-Type": mime,
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+            data=image_data,
+            timeout=60,
+        )
+        resp.raise_for_status()
+        attachment_id = resp.json().get("id")
+        if attachment_id:
+            logger.info("REST API 画像アップロード成功: ID=%s", attachment_id)
+            return int(attachment_id)
+        logger.warning("REST API レスポンスに ID がありません: %s", resp.text[:200])
+        return None
+    except (URLError, OSError) as e:
+        logger.warning("画像ダウンロード失敗: %s", e)
+        return None
+    except Exception as e:
+        logger.warning("REST API 画像アップロード失敗: %s", e)
+        return None
+
+
 def upload_media_from_url(
     server: xmlrpc.client.ServerProxy,
     username: str,
     password: str,
     img_url: str,
     filename: str = "featured.jpg",
+    wp_url: str | None = None,
 ) -> int | None:
     """
     外部URLの画像を WordPress メディアライブラリにアップロードし、
-    アタッチメント ID を返す。失敗時は None を返す。
+    アタッチメント ID を返す。REST API を優先し、失敗時に XML-RPC へフォールバック。
     """
+    # REST API を優先
+    if wp_url:
+        attachment_id = upload_media_rest_api(wp_url, username, password, img_url, filename)
+        if attachment_id:
+            return attachment_id
+        logger.info("REST API 失敗 → XML-RPC にフォールバック")
+
+    # XML-RPC フォールバック
     try:
         image_data, mime = _download_image(img_url)
         media = {
@@ -76,7 +123,7 @@ def upload_media_from_url(
         attachment_id = int(result.get("id", 0))
         if attachment_id:
             logger.info(
-                "画像アップロード成功: ID=%s  URL=%s",
+                "XML-RPC 画像アップロード成功: ID=%s  URL=%s",
                 attachment_id, result.get("url", "")
             )
             return attachment_id
@@ -159,6 +206,7 @@ def post_article(
                 WP_APP_PASSWORD,
                 featured_image_url,
                 filename=safe_name,
+                wp_url=WP_URL,
             )
             if attachment_id:
                 post_data["post_thumbnail"] = attachment_id
@@ -214,6 +262,7 @@ def update_article(
             attachment_id = upload_media_from_url(
                 server, WP_USERNAME, WP_APP_PASSWORD,
                 featured_image_url, filename=safe_name,
+                wp_url=WP_URL,
             )
             if attachment_id:
                 post_data["post_thumbnail"] = attachment_id
