@@ -1,1 +1,1 @@
-affiliate REST投稿テスト 2026-05-30T09:02:17Z
+retest REST after XServer fix 2026-05-30T13:36:02Z
