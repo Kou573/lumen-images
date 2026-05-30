@@ -168,7 +168,8 @@ def main() -> int:
             continue
 
         # WordPress にアップロード
-        safe_name = re.sub(r"[^\w\-]", "_", title[:40]) + ".jpg"
+        # ファイル名は ASCII のみ（日本語を含むと HTTP ヘッダの latin-1 エンコードで失敗する）
+        safe_name = (re.sub(r"[^a-zA-Z0-9_-]", "", title[:40]) or "featured") + ".jpg"
         try:
             attachment_id = _upload_image(image_data, mime, safe_name)
             if not attachment_id:
