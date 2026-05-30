@@ -83,8 +83,10 @@ def main() -> int:
         return 1
 
     if not WP_APP_PASSWORD:
-        print("[ABORT] WP_APP_PASSWORD が未設定です。WordPress への投稿をスキップします。")
-        return 0
+        # 認証情報が無いのに「緑（成功）」で終わると、投稿していないことに
+        # 何週間も気づけない。未設定は必ず失敗（赤）として可視化する。
+        print("[FATAL] WP_APP_PASSWORD が未設定です。WordPress に投稿できません。")
+        return 1
 
     data = _load_latest()
     if data is None:

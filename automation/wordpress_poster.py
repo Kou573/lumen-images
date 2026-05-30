@@ -12,6 +12,29 @@ logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _ascii_filename(title: str, suffix: str = "") -> str:
+    """
+    HTTP ヘッダ（Content-Disposition）に安全な ASCII のみのファイル名を生成する。
+    日本語タイトルをそのまま入れると requests が latin-1 エンコードで失敗するため、
+    非 ASCII 文字を除去し、空になった場合は "featured" にフォールバックする。
+    """
+    ascii_slug = re.sub(r"[^a-zA-Z0-9_-]", "", title[:40])
+    if not ascii_slug:
+        ascii_slug = "featured"
+    return f"{ascii_slug}{suffix}.jpg"
+
+
+def _rest_auth_header(username: str, password: str) -> str:
+    """WordPress アプリケーションパスワードによる REST Basic 認証ヘッダ値。"""
+    # アプリパスワードは表示上スペースを含むが、認証時は除去しても通る
+    token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+    return f"Basic {token}"
+
+
+# ---------------------------------------------------------------------------
 # Duplicate-post guard
 # ---------------------------------------------------------------------------
 
@@ -65,13 +88,14 @@ def upload_media_rest_api(
     try:
         import requests as _requests
         image_data, mime = _download_image(img_url)
-        cred = base64.b64encode(f"{username}:{password}".encode()).decode()
+        # 非 ASCII ファイル名は HTTP ヘッダで latin-1 エンコード失敗を起こすため除去する
+        safe_filename = _ascii_filename(filename.rsplit(".", 1)[0])
         resp = _requests.post(
             f"{wp_url.rstrip('/')}/wp-json/wp/v2/media",
             headers={
-                "Authorization": f"Basic {cred}",
+                "Authorization": _rest_auth_header(username, password),
                 "Content-Type": mime,
-                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Disposition": f'attachment; filename="{safe_filename}"',
             },
             data=image_data,
             timeout=60,
@@ -138,7 +162,148 @@ def upload_media_from_url(
 
 
 # ---------------------------------------------------------------------------
-# Post helper
+# REST API post path (primary)
+# ---------------------------------------------------------------------------
+
+def _rest_find_existing_post(
+    wp_url: str, username: str, password: str, title: str
+) -> str | None:
+    """REST API で同タイトルの公開済み記事を検索する。見つかれば post_id を返す。"""
+    try:
+        import requests as _requests
+        resp = _requests.get(
+            f"{wp_url.rstrip('/')}/wp-json/wp/v2/posts",
+            headers={"Authorization": _rest_auth_header(username, password)},
+            params={"search": title, "per_page": 20, "status": "publish"},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        for post in resp.json():
+            rendered = (post.get("title", {}) or {}).get("rendered", "")
+            if rendered.strip() == title.strip():
+                return str(post.get("id"))
+    except Exception as e:
+        logger.warning("REST 重複チェックに失敗しました（投稿は続行）: %s", e)
+    return None
+
+
+def _rest_resolve_tag_ids(
+    wp_url: str, username: str, password: str, tags: list[str]
+) -> list[int]:
+    """タグ名を REST のタグ ID に解決する。存在しなければ作成する（ベストエフォート）。"""
+    ids: list[int] = []
+    try:
+        import requests as _requests
+        headers = {"Authorization": _rest_auth_header(username, password)}
+        base = f"{wp_url.rstrip('/')}/wp-json/wp/v2/tags"
+        for name in tags:
+            if not name:
+                continue
+            try:
+                r = _requests.get(
+                    base, headers=headers, params={"search": name}, timeout=20
+                )
+                r.raise_for_status()
+                match = next(
+                    (t for t in r.json() if t.get("name", "").strip() == name.strip()),
+                    None,
+                )
+                if match:
+                    ids.append(int(match["id"]))
+                    continue
+                cr = _requests.post(
+                    base, headers=headers, json={"name": name}, timeout=20
+                )
+                if cr.status_code in (200, 201):
+                    ids.append(int(cr.json()["id"]))
+            except Exception as e:
+                logger.warning("タグ '%s' の解決に失敗（スキップ）: %s", name, e)
+    except Exception as e:
+        logger.warning("タグ解決全体に失敗（タグなしで投稿）: %s", e)
+    return ids
+
+
+def _post_article_rest(
+    title: str,
+    content: str,
+    tags: list[str] | None = None,
+    featured_image_url: str | None = None,
+    meta_description: str | None = None,
+) -> dict:
+    """
+    WordPress REST API（/wp-json/wp/v2/posts）で記事を投稿する（主経路）。
+    アプリケーションパスワードによる Basic 認証を使う。
+    """
+    from config import WP_URL, WP_USERNAME, WP_APP_PASSWORD
+
+    if not all([WP_URL, WP_USERNAME, WP_APP_PASSWORD]):
+        msg = "WP_URL / WP_USERNAME / WP_APP_PASSWORD が未設定です。"
+        logger.error(msg)
+        return {"error": msg}
+
+    try:
+        import requests as _requests
+    except ImportError:
+        return {"error": "requests ライブラリが未インストールです。"}
+
+    base = WP_URL.rstrip("/")
+    headers = {"Authorization": _rest_auth_header(WP_USERNAME, WP_APP_PASSWORD)}
+    logger.info("WordPress REST 投稿開始: %s", title)
+
+    # ── 重複ガード ──
+    existing_id = _rest_find_existing_post(base, WP_USERNAME, WP_APP_PASSWORD, title)
+    if existing_id:
+        logger.info("同タイトルの記事が既に存在します (ID=%s)。スキップ。", existing_id)
+        return {"id": existing_id, "skipped": True, "link": f"{base}/?p={existing_id}"}
+
+    payload: dict = {
+        "title": title,
+        "content": content,
+        "status": "publish",
+        "excerpt": meta_description or "",
+    }
+
+    # ── アイキャッチ画像 ──
+    if featured_image_url:
+        logger.info("アイキャッチ画像を REST でアップロード中...")
+        attachment_id = upload_media_rest_api(
+            base, WP_USERNAME, WP_APP_PASSWORD, featured_image_url,
+            filename=_ascii_filename(title),
+        )
+        if attachment_id:
+            payload["featured_media"] = attachment_id
+            logger.info("アイキャッチ設定: media_id=%s", attachment_id)
+
+    # ── タグ ──
+    if tags:
+        tag_ids = _rest_resolve_tag_ids(base, WP_USERNAME, WP_APP_PASSWORD, tags)
+        if tag_ids:
+            payload["tags"] = tag_ids
+
+    # ── 投稿 ──
+    try:
+        resp = _requests.post(
+            f"{base}/wp-json/wp/v2/posts",
+            headers=headers, json=payload, timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        post_id = data.get("id")
+        link = data.get("link") or f"{base}/?p={post_id}"
+        logger.info("REST 投稿成功: ID=%s  %s", post_id, link)
+        return {"id": post_id, "link": link}
+    except Exception as e:
+        body = ""
+        try:
+            body = resp.text[:300]  # type: ignore[name-defined]
+        except Exception:
+            pass
+        logger.error("REST 投稿エラー: %s  %s", e, body)
+        return {"error": f"REST post failed: {e} {body}"}
+
+
+# ---------------------------------------------------------------------------
+# Post helper (public dispatcher: REST first, XML-RPC fallback)
 # ---------------------------------------------------------------------------
 
 def post_article(
@@ -151,13 +316,42 @@ def post_article(
     """
     WordPress に記事を投稿する。
 
-    Parameters
-    ----------
-    title              : 記事タイトル
-    content            : HTML 本文
-    tags               : タグ文字列のリスト（省略可）
-    featured_image_url : アイキャッチ画像の外部 URL（省略可）
-    meta_description   : 抜粋テキスト（省略可）
+    まず REST API（アプリケーションパスワード認証）で投稿を試みる。
+    多くのホストは xmlrpc.php を遮断するため REST が本命。
+    REST が失敗した場合のみ、レガシーの XML-RPC 経路にフォールバックする。
+    """
+    result = _post_article_rest(
+        title=title, content=content, tags=tags,
+        featured_image_url=featured_image_url, meta_description=meta_description,
+    )
+    if "error" not in result:
+        return result
+
+    logger.warning("REST 投稿に失敗 → XML-RPC にフォールバックします。")
+    fallback = _post_article_xmlrpc(
+        title=title, content=content, tags=tags,
+        featured_image_url=featured_image_url, meta_description=meta_description,
+    )
+    if "error" in fallback:
+        # 両経路失敗時は REST 側のエラーを主因として返す
+        fallback["error"] = (
+            f"REST失敗[{result['error']}] / XML-RPC失敗[{fallback['error']}]"
+        )
+    return fallback
+
+
+def _post_article_xmlrpc(
+    title: str,
+    content: str,
+    tags: list[str] | None = None,
+    featured_image_url: str | None = None,
+    meta_description: str | None = None,
+) -> dict:
+    """
+    WordPress に記事を XML-RPC で投稿する（レガシー・フォールバック経路）。
+
+    多くのレンタルサーバ／セキュリティプラグインは xmlrpc.php を遮断するため、
+    通常は post_article() の REST 経路が使われる。REST が失敗した場合のみここに来る。
     """
     from config import WP_URL, WP_USERNAME, WP_APP_PASSWORD
 
