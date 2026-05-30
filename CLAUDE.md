@@ -92,7 +92,10 @@ output/                 ← 生成物の保存先
 automation/             ← lightlog自動投稿システム
   topics/
     saas_topics.json    ← 投稿トピック一覧（posted: true/false で管理）
-  wordpress_poster.py   ← WordPress XML-RPC投稿
+  run_affiliate.py      ← STEP1: 記事生成 → articles/latest.json に保存
+  post_to_wordpress.py  ← STEP3: latest.json を WordPress へ投稿（重複防止付き）
+  article_generator.py  ← 記事本文生成（SEO/AIO/LLMO 最適化）
+  wordpress_poster.py   ← WordPress XML-RPC 投稿ヘルパー
   revenue_reporter.py   ← GA4収益レポート生成
 articles/
   latest.json           ← 直近の生成記事データ
