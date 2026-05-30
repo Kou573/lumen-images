@@ -42,6 +42,8 @@ def main() -> int:
                 "content":            content,
                 "meta_description":   meta_description,
                 "featured_image_url": img_url,
+                # affiliate_tools は WordPress 投稿時にタグ（post_tag）として使われる
+                "affiliate_tools":    topic.get("affiliate_tools", []),
                 # wp_post_id は WordPress 投稿ステップで設定される（post_to_wordpress.py）
                 "wp_post_id":         None,
             },

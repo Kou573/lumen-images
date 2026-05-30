@@ -64,7 +64,13 @@ def _git_commit_and_push(post_id: str, title: str) -> bool:
              f"Record wp_post_id={post_id} for '{title[:40]}' [skip ci]"],
             check=True,
         )
-        subprocess.run(["git", "push"], check=True)
+        # push を試みる。non-fast-forward（STEP2 の push 後にリモートが進んだ場合）で
+        # 失敗したら pull --rebase してから 1 回だけリトライする。
+        push = subprocess.run(["git", "push"], capture_output=True, text=True)
+        if push.returncode != 0:
+            print(f"[WARN] git push に失敗（{push.stderr.strip()}）。pull --rebase してリトライします。")
+            subprocess.run(["git", "pull", "--rebase"], check=True)
+            subprocess.run(["git", "push"], check=True)
         print(f"[INFO] wp_post_id={post_id} を latest.json にコミットしました。")
         return True
     except subprocess.CalledProcessError as e:
@@ -124,7 +130,11 @@ def main() -> int:
 
     # ── wp_post_id を latest.json に記録して git push ──
     _save_wp_post_id(data, post_id)
-    _git_commit_and_push(post_id, title)
+    if not _git_commit_and_push(post_id, title):
+        print(
+            "[WARN] wp_post_id を latest.json に記録しましたが git push に失敗しました。"
+            "重複防止は WordPress 側の同タイトル検索で担保されますが、原因を確認してください。"
+        )
 
     print("=" * 60)
     return 0
