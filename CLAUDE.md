@@ -40,6 +40,14 @@
 > **COOとして**: lightlog の投稿状況・収益進捗を常に把握し、CEOへの報告に含めること。
 > `/status` コマンドで最新状況を即座に確認できる。
 
+### インフラ情報
+| 項目 | 内容 |
+|---|---|
+| ホスティング | **Xserver** |
+| サイト | https://glowlog.net |
+| WordPress投稿方式 | XML-RPC（`automation/wordpress_poster.py`） |
+| 既知の問題 | XserverのWAFがクラウドIP（GitHub ActionsのAzure IPなど）をブロック（`host_not_allowed` 403）→ **Xserver管理画面でGitHub Actions IPをWAFホワイトリストに追加が必要** |
+
 ---
 
 ## スラッシュコマンド（サブスク内で動作）
