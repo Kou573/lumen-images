@@ -7,49 +7,49 @@
       "title": "クラウドサインの電子契約サービス比較：料金・機能・導入事例",
       "stage": "upload_failed",
       "img_url": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&auto=format&fit=crop&sig=6",
-      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+      "error": "HTTP 401: {\"code\":\"rest_cannot_create\",\"message\":\"\\u3053\\u306e\\u30e6\\u30fc\\u30b6\\u30fc\\u3068\\u3057\\u3066\\u6295\\u7a3f\\u3092\\u7de8\\u96c6\\u3059\\u308b\\u6a29\\u9650\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093\\u3002\",\"data\":{\"status\":401}}"
     },
     {
       "id": 58,
       "title": "Notionの料金プランを比較：個人・チームどちらがお得か",
       "stage": "upload_failed",
       "img_url": "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&auto=format&fit=crop&sig=5",
-      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+      "error": "HTTP 401: {\"code\":\"rest_cannot_create\",\"message\":\"\\u3053\\u306e\\u30e6\\u30fc\\u30b6\\u30fc\\u3068\\u3057\\u3066\\u6295\\u7a3f\\u3092\\u7de8\\u96c6\\u3059\\u308b\\u6a29\\u9650\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093\\u3002\",\"data\":{\"status\":401}}"
     },
     {
       "id": 40,
       "title": "Canva Pro の料金と無料版との機能差を比較【デザイン初心者向け】",
       "stage": "upload_failed",
       "img_url": "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&auto=format&fit=crop&sig=4",
-      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+      "error": "HTTP 401: {\"code\":\"rest_cannot_create\",\"message\":\"\\u3053\\u306e\\u30e6\\u30fc\\u30b6\\u30fc\\u3068\\u3057\\u3066\\u6295\\u7a3f\\u3092\\u7de8\\u96c6\\u3059\\u308b\\u6a29\\u9650\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093\\u3002\",\"data\":{\"status\":401}}"
     },
     {
       "id": 19,
       "title": "ChatGPT Plus は個人事業主に必要か？無料版との違いを検証",
       "stage": "upload_failed",
       "img_url": "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200&auto=format&fit=crop&sig=3",
-      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+      "error": "HTTP 401: {\"code\":\"rest_cannot_create\",\"message\":\"\\u3053\\u306e\\u30e6\\u30fc\\u30b6\\u30fc\\u3068\\u3057\\u3066\\u6295\\u7a3f\\u3092\\u7de8\\u96c6\\u3059\\u308b\\u6a29\\u9650\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093\\u3002\",\"data\":{\"status\":401}}"
     },
     {
       "id": 17,
       "title": "マネーフォワードクラウドの全サービス一覧と料金まとめ",
       "stage": "upload_failed",
       "img_url": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&auto=format&fit=crop",
-      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+      "error": "HTTP 401: {\"code\":\"rest_cannot_create\",\"message\":\"\\u3053\\u306e\\u30e6\\u30fc\\u30b6\\u30fc\\u3068\\u3057\\u3066\\u6295\\u7a3f\\u3092\\u7de8\\u96c6\\u3059\\u308b\\u6a29\\u9650\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093\\u3002\",\"data\":{\"status\":401}}"
     },
     {
       "id": 16,
       "title": "freee会計の料金プランを徹底比較【2026年最新】",
       "stage": "upload_failed",
       "img_url": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&auto=format&fit=crop",
-      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+      "error": "HTTP 401: {\"code\":\"rest_cannot_create\",\"message\":\"\\u3053\\u306e\\u30e6\\u30fc\\u30b6\\u30fc\\u3068\\u3057\\u3066\\u6295\\u7a3f\\u3092\\u7de8\\u96c6\\u3059\\u308b\\u6a29\\u9650\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093\\u3002\",\"data\":{\"status\":401}}"
     },
     {
       "id": 6,
       "title": "Chatwork vs Slack：日本企業向けビジネスチャット比較",
       "stage": "upload_failed",
       "img_url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop",
-      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+      "error": "HTTP 401: {\"code\":\"rest_cannot_create\",\"message\":\"\\u3053\\u306e\\u30e6\\u30fc\\u30b6\\u30fc\\u3068\\u3057\\u3066\\u6295\\u7a3f\\u3092\\u7de8\\u96c6\\u3059\\u308b\\u6a29\\u9650\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093\\u3002\",\"data\":{\"status\":401}}"
     }
   ]
 }
