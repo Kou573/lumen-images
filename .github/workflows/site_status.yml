@@ -1,0 +1,45 @@
+name: Site Status (read-only)
+
+# glowlog.net の WordPress REST API を読み取り、各記事のアイキャッチ有無などを
+# output/site_status.json にコミットする。投稿・編集は一切行わない読み取り専用。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.status_trigger']
+
+concurrency:
+  group: site-status
+  cancel-in-progress: false
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch site status
+        run: python automation/site_status.py
+        env:
+          WP_URL:          ${{ secrets.WP_URL }}
+          WP_USERNAME:     ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+
+      - name: Commit status snapshot
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions"
+          git add output/site_status.json
+          git diff --staged --quiet || git commit -m "chore: site status snapshot [skip ci]"
+          git push
