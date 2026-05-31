@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import json
 import re
 import sys
 import time
@@ -143,6 +144,13 @@ def main() -> int:
 
     success_count = 0
     fail_count = 0
+    results: list[dict] = []
+
+    def _record(pid, title, stage, img_url=None, error=None):
+        results.append({
+            "id": pid, "title": title, "stage": stage,
+            "img_url": img_url, "error": error,
+        })
 
     for i, post in enumerate(posts):
         post_id = post["id"]
@@ -155,6 +163,7 @@ def main() -> int:
         if not img_url:
             print("  [SKIP] 記事本文に画像URLが見つかりません")
             fail_count += 1
+            _record(post_id, title, "no_image_in_content")
             continue
         print(f"  [INFO] 画像URL: {img_url[:80]}")
 
@@ -165,6 +174,7 @@ def main() -> int:
         except (URLError, OSError) as e:
             print(f"  [ERROR] 画像ダウンロード失敗: {e}")
             fail_count += 1
+            _record(post_id, title, "download_failed", img_url, str(e))
             continue
 
         # WordPress にアップロード
@@ -175,11 +185,13 @@ def main() -> int:
             if not attachment_id:
                 print("  [ERROR] アップロード失敗: attachment_id が取得できませんでした")
                 fail_count += 1
+                _record(post_id, title, "upload_no_id", img_url)
                 continue
             print(f"  [OK] アップロード完了: attachment_id={attachment_id}")
         except Exception as e:
             print(f"  [ERROR] アップロード失敗: {e}")
             fail_count += 1
+            _record(post_id, title, "upload_failed", img_url, str(e))
             continue
 
         # アイキャッチに設定
@@ -187,12 +199,21 @@ def main() -> int:
             _set_featured_media(post_id, attachment_id)
             print("  [SUCCESS] アイキャッチ設定完了")
             success_count += 1
+            _record(post_id, title, "success", img_url)
         except Exception as e:
             print(f"  [ERROR] アイキャッチ設定失敗: {e}")
             fail_count += 1
+            _record(post_id, title, "set_featured_failed", img_url, str(e))
 
         if i < len(posts) - 1:
             time.sleep(SLEEP_BETWEEN_POSTS)
+
+    out = Path("output/featured_images_result.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({
+        "success": success_count, "fail": fail_count, "results": results,
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n[DONE] 成功 {success_count} / 失敗 {fail_count} → {out}")
 
     print("\n" + "=" * 60)
     print(f"完了: 成功={success_count}  失敗={fail_count}")
