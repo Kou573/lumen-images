@@ -1,0 +1,55 @@
+{
+  "success": 0,
+  "fail": 7,
+  "results": [
+    {
+      "id": 82,
+      "title": "クラウドサインの電子契約サービス比較：料金・機能・導入事例",
+      "stage": "download_failed",
+      "img_url": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&#038;auto=format&#038;fit=crop&#038;sig=6",
+      "error": "HTTP Error 400: Bad Request"
+    },
+    {
+      "id": 58,
+      "title": "Notionの料金プランを比較：個人・チームどちらがお得か",
+      "stage": "download_failed",
+      "img_url": "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&#038;auto=format&#038;fit=crop&#038;sig=5",
+      "error": "HTTP Error 400: Bad Request"
+    },
+    {
+      "id": 40,
+      "title": "Canva Pro の料金と無料版との機能差を比較【デザイン初心者向け】",
+      "stage": "download_failed",
+      "img_url": "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&#038;auto=format&#038;fit=crop&#038;sig=4",
+      "error": "HTTP Error 400: Bad Request"
+    },
+    {
+      "id": 19,
+      "title": "ChatGPT Plus は個人事業主に必要か？無料版との違いを検証",
+      "stage": "download_failed",
+      "img_url": "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200&#038;auto=format&#038;fit=crop&#038;sig=3",
+      "error": "HTTP Error 400: Bad Request"
+    },
+    {
+      "id": 17,
+      "title": "マネーフォワードクラウドの全サービス一覧と料金まとめ",
+      "stage": "download_failed",
+      "img_url": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&#038;auto=format&#038;fit=crop",
+      "error": "HTTP Error 400: Bad Request"
+    },
+    {
+      "id": 16,
+      "title": "freee会計の料金プランを徹底比較【2026年最新】",
+      "stage": "upload_failed",
+      "img_url": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&amp;auto=format&amp;fit=crop",
+      "error": "401 Client Error: Unauthorized for url: https://glowlog.net/wp-json/wp/v2/media"
+    },
+    {
+      "id": 6,
+      "title": "Chatwork vs Slack：日本企業向けビジネスチャット比較",
+      "stage": "no_image_in_content",
+      "img_url": null,
+      "error": null
+    }
+  ]
+}
