@@ -1,5 +1,11 @@
 name: Set Featured Images (Backfill)
 
+# 既存投稿のアイキャッチ（記事一覧サムネイル）を一括設定する。
+# backfill_articles（XML-RPCで本文を作り直す別物）と相乗りしないよう、
+# 専用トリガー .featured_trigger に分離している。
+# 実行後はサイト状態スナップショット(site_status.py)も取得してコミットし、
+# 結果を git 経由で検証可能にする。
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,12 +15,18 @@ on:
         default: ''
   push:
     branches: [main]
-    paths: ['.backfill_trigger']
+    paths: ['.featured_trigger']
+
+concurrency:
+  group: set-featured-images
+  cancel-in-progress: false
 
 jobs:
   set-images:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -37,3 +49,20 @@ jobs:
           WP_URL:          ${{ secrets.WP_URL }}
           WP_USERNAME:     ${{ secrets.WP_USERNAME }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+
+      - name: Snapshot site status
+        if: always()
+        run: python automation/site_status.py
+        env:
+          WP_URL:          ${{ secrets.WP_URL }}
+          WP_USERNAME:     ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+
+      - name: Commit status snapshot
+        if: always()
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions"
+          git add output/site_status.json
+          git diff --staged --quiet || git commit -m "chore: featured-images run + site status snapshot [skip ci]"
+          git push
