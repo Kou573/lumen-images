@@ -116,7 +116,8 @@ def _upload_image(image_data: bytes, mime: str, filename: str) -> int | None:
                 data=image_data,
                 timeout=60,
             )
-            resp.raise_for_status()
+            if resp.status_code >= 400:
+                raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:300]}")
             attachment_id = resp.json().get("id")
             return int(attachment_id) if attachment_id else None
         except Exception as e:

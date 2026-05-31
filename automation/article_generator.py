@@ -127,35 +127,55 @@ def replace_affiliate_placeholders(html: str, tool_data: dict) -> str:
 # Image generation (GPT-image / DALL-E 3 → fallback Unsplash)
 # ---------------------------------------------------------------------------
 
-CATEGORY_IMAGES: dict[str, str] = {
-    "会計・経費管理":           "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&auto=format&fit=crop",
-    "AI・生産性":               "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200&auto=format&fit=crop",
-    "デザイン・クリエイティブ": "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&auto=format&fit=crop",
-    "プロジェクト管理・メモ":   "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&auto=format&fit=crop",
-    "プロジェクト管理":         "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&auto=format&fit=crop",
-    "電子契約・法務":           "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&auto=format&fit=crop",
-    "コミュニケーション":       "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&auto=format&fit=crop",
-    "コミュニケーション・動画": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&auto=format&fit=crop",
-    "Web会議・コミュニケーション": "https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=1200&auto=format&fit=crop",
-    "転職・キャリア":           "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&auto=format&fit=crop",
-    "副業・スキマバイト":       "https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=1200&auto=format&fit=crop",
-    "スキマバイト・副業":       "https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=1200&auto=format&fit=crop",
-    "レンタルサーバー":         "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&auto=format&fit=crop",
-    "業務改善・ローコード":     "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&auto=format&fit=crop",
-    "業務自動化":               "https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=1200&auto=format&fit=crop",
-    "CRM・マーケティング":      "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=1200&auto=format&fit=crop",
+# 確認済み Unsplash 写真（?w=1200&auto=format&fit=crop 付き）。
+# 1カテゴリ=1枚だと同カテゴリの記事が同じ画像になるため、カテゴリごとに
+# 複数枚のプールを持ち、topic_id で割り当てて記事ごとに別画像にする。
+_IMG = {
+    "desk":    "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&auto=format&fit=crop",
+    "ai":      "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200&auto=format&fit=crop",
+    "design":  "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1200&auto=format&fit=crop",
+    "pm":      "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&auto=format&fit=crop",
+    "legal":   "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&auto=format&fit=crop",
+    "team":    "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&auto=format&fit=crop",
+    "meeting": "https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=1200&auto=format&fit=crop",
+    "people":  "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&auto=format&fit=crop",
+    "laptop":  "https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=1200&auto=format&fit=crop",
+    "server":  "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&auto=format&fit=crop",
+    "lowcode": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&auto=format&fit=crop",
+    "auto":    "https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=1200&auto=format&fit=crop",
+    "crm":     "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=1200&auto=format&fit=crop",
+    "charts":  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop",
 }
-DEFAULT_IMAGE = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop"
+
+CATEGORY_IMAGE_POOLS: dict[str, list[str]] = {
+    "会計・経費管理":             [_IMG["desk"], _IMG["charts"], _IMG["crm"], _IMG["lowcode"]],
+    "AI・生産性":                 [_IMG["ai"], _IMG["auto"], _IMG["lowcode"], _IMG["charts"]],
+    "デザイン・クリエイティブ":   [_IMG["design"], _IMG["lowcode"], _IMG["charts"], _IMG["desk"]],
+    "プロジェクト管理・メモ":     [_IMG["pm"], _IMG["lowcode"], _IMG["team"], _IMG["charts"]],
+    "プロジェクト管理":           [_IMG["pm"], _IMG["lowcode"], _IMG["team"], _IMG["charts"]],
+    "電子契約・法務":             [_IMG["legal"], _IMG["desk"], _IMG["charts"], _IMG["team"]],
+    "コミュニケーション":         [_IMG["team"], _IMG["meeting"], _IMG["people"], _IMG["lowcode"]],
+    "コミュニケーション・動画":   [_IMG["meeting"], _IMG["team"], _IMG["people"], _IMG["lowcode"]],
+    "Web会議・コミュニケーション": [_IMG["meeting"], _IMG["team"], _IMG["people"], _IMG["charts"]],
+    "転職・キャリア":             [_IMG["people"], _IMG["team"], _IMG["charts"], _IMG["lowcode"]],
+    "副業・スキマバイト":         [_IMG["laptop"], _IMG["charts"], _IMG["lowcode"], _IMG["desk"]],
+    "スキマバイト・副業":         [_IMG["laptop"], _IMG["charts"], _IMG["lowcode"], _IMG["desk"]],
+    "レンタルサーバー":           [_IMG["server"], _IMG["lowcode"], _IMG["auto"], _IMG["charts"]],
+    "業務改善・ローコード":       [_IMG["lowcode"], _IMG["auto"], _IMG["ai"], _IMG["charts"]],
+    "業務自動化":                 [_IMG["auto"], _IMG["lowcode"], _IMG["ai"], _IMG["charts"]],
+    "CRM・マーケティング":        [_IMG["crm"], _IMG["desk"], _IMG["charts"], _IMG["lowcode"]],
+}
+_DEFAULT_POOL = [_IMG["charts"], _IMG["desk"], _IMG["lowcode"], _IMG["team"]]
+DEFAULT_IMAGE = _IMG["charts"]
 
 
 def _unsplash_fallback(category: str, topic_id: int) -> str:
     """
-    カテゴリ対応の Unsplash 画像を返す。
-    sig=topic_id を追加することで記事ごとに異なる画像が配信される。
+    カテゴリ対応の Unsplash 画像プールから topic_id で1枚選ぶ。
+    連番の同カテゴリ記事が必ず別画像になるよう、プール長で剰余を取る。
     """
-    base = CATEGORY_IMAGES.get(category, DEFAULT_IMAGE)
-    sep  = "&" if "?" in base else "?"
-    return f"{base}{sep}sig={topic_id}"
+    pool = CATEGORY_IMAGE_POOLS.get(category, _DEFAULT_POOL)
+    return pool[topic_id % len(pool)]
 
 
 def _generate_ai_image(keyword: str, category: str, topic_id: int) -> str:
