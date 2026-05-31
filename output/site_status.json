@@ -1,0 +1,88 @@
+{
+  "fetched_at": "2026-05-31T02:35:05.797354Z",
+  "total_posts": 10,
+  "with_thumbnail": 3,
+  "without_thumbnail": 7,
+  "posts": [
+    {
+      "id": 118,
+      "title": "Asanaの使い方と料金：タスク管理をもっとシンプルにする方法",
+      "featured_media": 117,
+      "has_thumbnail": true,
+      "date": "2026-05-31T09:03:55",
+      "link": "https://glowlog.net/2026/05/31/asana%e3%81%ae%e4%bd%bf%e3%81%84%e6%96%b9%e3%81%a8%e6%96%99%e9%87%91%ef%bc%9a%e3%82%bf%e3%82%b9%e3%82%af%e7%ae%a1%e7%90%86%e3%82%92%e3%82%82%e3%81%a3%e3%81%a8%e3%82%b7%e3%83%b3%e3%83%97%e3%83%ab/"
+    },
+    {
+      "id": 115,
+      "title": "BacklogとJiraを比較：中小チームに向いているのはどちら？",
+      "featured_media": 114,
+      "has_thumbnail": true,
+      "date": "2026-05-30T22:39:28",
+      "link": "https://glowlog.net/2026/05/30/backlog%e3%81%a8jira%e3%82%92%e6%af%94%e8%bc%83%ef%bc%9a%e4%b8%ad%e5%b0%8f%e3%83%81%e3%83%bc%e3%83%a0%e3%81%ab%e5%90%91%e3%81%84%e3%81%a6%e3%81%84%e3%82%8b%e3%81%ae%e3%81%af%e3%81%a9%e3%81%a1%e3%82%89/"
+    },
+    {
+      "id": 112,
+      "title": "Figmaの料金プランを徹底解説：スタータープランで十分？",
+      "featured_media": 111,
+      "has_thumbnail": true,
+      "date": "2026-05-30T22:37:17",
+      "link": "https://glowlog.net/2026/05/30/figma%e3%81%ae%e6%96%99%e9%87%91%e3%83%97%e3%83%a9%e3%83%b3%e3%82%92%e5%be%b9%e5%ba%95%e8%a7%a3%e8%aa%ac%ef%bc%9a%e3%82%b9%e3%82%bf%e3%83%bc%e3%82%bf%e3%83%bc%e3%83%97%e3%83%a9%e3%83%b3%e3%81%a7/"
+    },
+    {
+      "id": 82,
+      "title": "クラウドサインの電子契約サービス比較：料金・機能・導入事例",
+      "featured_media": 0,
+      "has_thumbnail": false,
+      "date": "2026-05-28T09:55:17",
+      "link": "https://glowlog.net/2026/05/28/%e3%82%af%e3%83%a9%e3%82%a6%e3%83%89%e3%82%b5%e3%82%a4%e3%83%b3%e3%81%ae%e9%9b%bb%e5%ad%90%e5%a5%91%e7%b4%84%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e6%af%94%e8%bc%83%ef%bc%9a%e6%96%99%e9%87%91%e3%83%bb-2/"
+    },
+    {
+      "id": 58,
+      "title": "Notionの料金プランを比較：個人・チームどちらがお得か",
+      "featured_media": 0,
+      "has_thumbnail": false,
+      "date": "2026-05-27T09:44:09",
+      "link": "https://glowlog.net/2026/05/27/notion%e3%81%ae%e6%96%99%e9%87%91%e3%83%97%e3%83%a9%e3%83%b3%e3%82%92%e6%af%94%e8%bc%83%ef%bc%9a%e5%80%8b%e4%ba%ba%e3%83%bb%e3%83%81%e3%83%bc%e3%83%a0%e3%81%a9%e3%81%a1%e3%82%89%e3%81%8c%e3%81%8a/"
+    },
+    {
+      "id": 40,
+      "title": "Canva Pro の料金と無料版との機能差を比較【デザイン初心者向け】",
+      "featured_media": 0,
+      "has_thumbnail": false,
+      "date": "2026-05-26T10:00:20",
+      "link": "https://glowlog.net/2026/05/26/canva-pro-%e3%81%ae%e6%96%99%e9%87%91%e3%81%a8%e7%84%a1%e6%96%99%e7%89%88%e3%81%a8%e3%81%ae%e6%a9%9f%e8%83%bd%e5%b7%ae%e3%82%92%e6%af%94%e8%bc%83%e3%80%90%e3%83%87%e3%82%b6%e3%82%a4%e3%83%b3%e5%88%9d/"
+    },
+    {
+      "id": 19,
+      "title": "ChatGPT Plus は個人事業主に必要か？無料版との違いを検証",
+      "featured_media": 0,
+      "has_thumbnail": false,
+      "date": "2026-05-25T15:44:57",
+      "link": "https://glowlog.net/2026/05/25/chatgpt-plus-%e3%81%af%e5%80%8b%e4%ba%ba%e4%ba%8b%e6%a5%ad%e4%b8%bb%e3%81%ab%e5%bf%85%e8%a6%81%e3%81%8b%ef%bc%9f%e7%84%a1%e6%96%99%e7%89%88%e3%81%a8%e3%81%ae%e9%81%95%e3%81%84%e3%82%92%e6%a4%9c-2/"
+    },
+    {
+      "id": 17,
+      "title": "マネーフォワードクラウドの全サービス一覧と料金まとめ",
+      "featured_media": 0,
+      "has_thumbnail": false,
+      "date": "2026-05-25T09:55:47",
+      "link": "https://glowlog.net/2026/05/25/%e3%83%9e%e3%83%8d%e3%83%bc%e3%83%95%e3%82%a9%e3%83%af%e3%83%bc%e3%83%89%e3%82%af%e3%83%a9%e3%82%a6%e3%83%89%e3%81%ae%e5%85%a8%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e4%b8%80%e8%a6%a7%e3%81%a8%e6%96%99/"
+    },
+    {
+      "id": 16,
+      "title": "freee会計の料金プランを徹底比較【2026年最新】",
+      "featured_media": 0,
+      "has_thumbnail": false,
+      "date": "2026-05-25T09:44:03",
+      "link": "https://glowlog.net/2026/05/25/freee%e4%bc%9a%e8%a8%88%e3%81%ae%e6%96%99%e9%87%91%e3%83%97%e3%83%a9%e3%83%b3%e3%82%92%e5%be%b9%e5%ba%95%e6%af%94%e8%bc%83%e3%80%902026%e5%b9%b4%e6%9c%80%e6%96%b0%e3%80%91-2/"
+    },
+    {
+      "id": 6,
+      "title": "Chatwork vs Slack：日本企業向けビジネスチャット比較",
+      "featured_media": 0,
+      "has_thumbnail": false,
+      "date": "2026-05-25T00:39:27",
+      "link": "https://glowlog.net/2026/05/25/chatwork-vs-slack%ef%bc%9a%e6%97%a5%e6%9c%ac%e4%bc%81%e6%a5%ad%e5%90%91%e3%81%91%e3%83%93%e3%82%b8%e3%83%8d%e3%82%b9%e3%83%81%e3%83%a3%e3%83%83%e3%83%88%e6%af%94%e8%bc%83/"
+    }
+  ]
+}
