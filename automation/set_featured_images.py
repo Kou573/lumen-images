@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import html
 import json
 import re
 import sys
@@ -72,10 +73,20 @@ def _get_posts_without_featured_image(limit: int | None = None) -> list[dict]:
     return posts[:limit] if limit else posts
 
 
+# 本文に画像が無い記事のフォールバック用（汎用ビジネス画像）
+DEFAULT_IMAGE = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop"
+
+
 def _extract_first_image_url(content_html: str) -> str | None:
-    """記事本文の最初の <img src> を返す。"""
+    """記事本文の最初の <img src> を返す。
+
+    content.rendered では URL 中の & が &amp; に HTML エンコードされており、
+    そのまま取得すると画像配信側で 400 になるため html.unescape で復元する。
+    """
     match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', content_html)
-    return match.group(1) if match else None
+    if not match:
+        return None
+    return html.unescape(match.group(1))
 
 
 def _download_image(img_url: str) -> tuple[bytes, str]:
@@ -88,20 +99,31 @@ def _download_image(img_url: str) -> tuple[bytes, str]:
 
 
 def _upload_image(image_data: bytes, mime: str, filename: str) -> int | None:
-    """画像を WordPress メディアライブラリにアップロードし attachment ID を返す。"""
-    resp = requests.post(
-        f"{WP_URL.rstrip('/')}/wp-json/wp/v2/media",
-        headers={
-            **_auth_headers(),
-            "Content-Type": mime,
-            "Content-Disposition": f'attachment; filename="{filename}"',
-        },
-        data=image_data,
-        timeout=60,
-    )
-    resp.raise_for_status()
-    attachment_id = resp.json().get("id")
-    return int(attachment_id) if attachment_id else None
+    """画像を WordPress メディアライブラリにアップロードし attachment ID を返す。
+
+    まれに 401/5xx が返ることがあるため最大3回リトライする。
+    """
+    last_exc = None
+    for attempt in range(3):
+        try:
+            resp = requests.post(
+                f"{WP_URL.rstrip('/')}/wp-json/wp/v2/media",
+                headers={
+                    **_auth_headers(),
+                    "Content-Type": mime,
+                    "Content-Disposition": f'attachment; filename="{filename}"',
+                },
+                data=image_data,
+                timeout=60,
+            )
+            resp.raise_for_status()
+            attachment_id = resp.json().get("id")
+            return int(attachment_id) if attachment_id else None
+        except Exception as e:
+            last_exc = e
+            if attempt < 2:
+                time.sleep(2 * (attempt + 1))
+    raise last_exc
 
 
 def _set_featured_media(post_id: int, attachment_id: int) -> bool:
@@ -161,10 +183,8 @@ def main() -> int:
         content_html = post.get("content", {}).get("rendered", "")
         img_url = _extract_first_image_url(content_html)
         if not img_url:
-            print("  [SKIP] 記事本文に画像URLが見つかりません")
-            fail_count += 1
-            _record(post_id, title, "no_image_in_content")
-            continue
+            print("  [INFO] 本文に画像なし → デフォルト画像で代用")
+            img_url = DEFAULT_IMAGE
         print(f"  [INFO] 画像URL: {img_url[:80]}")
 
         # 画像ダウンロード
